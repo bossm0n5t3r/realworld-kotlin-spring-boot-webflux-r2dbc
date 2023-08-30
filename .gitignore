@@ -1,43 +1,40 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# build
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-.idea/
+# dependencies
+/node_modules
+/dist
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
+# IDEs and editors
+/.idea
 .project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
 
-### VS Code ###
-.vscode/
 
-### Mac OS ###
+#System Files
 .DS_Store
+Thumbs.db
+
+
+#log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
