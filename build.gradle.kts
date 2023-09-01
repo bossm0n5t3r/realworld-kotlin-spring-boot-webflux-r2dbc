@@ -16,6 +16,7 @@ private val h2Version: String by project
 private val ktlintVersion: String by project
 private val jose4jVersion: String by project
 private val mockkVersion: String by project
+private val arrowVersion: String by project
 
 group = "com.realworld"
 version = "1.0-SNAPSHOT"
@@ -36,6 +37,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("io.r2dbc:r2dbc-h2:$r2dbcVersion")
     implementation("com.h2database:h2:$h2Version")
+
+    // Arrow
+    implementation("io.arrow-kt:arrow-core:$arrowVersion")
+    implementation("io.arrow-kt:arrow-fx-coroutines:$arrowVersion")
 
     implementation("org.bitbucket.b_c:jose4j:$jose4jVersion")
 
