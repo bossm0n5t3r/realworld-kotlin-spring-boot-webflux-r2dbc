@@ -12,13 +12,9 @@ import com.realworld.user.dto.AuthenticationUser
 import com.realworld.user.dto.SignUpRequest
 import com.realworld.user.dto.UserWrapper
 import kotlinx.coroutines.reactor.awaitSingle
-import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.reactive.function.server.ServerRequest
-import org.springframework.web.reactive.function.server.ServerResponse
-import org.springframework.web.reactive.function.server.awaitBody
-import org.springframework.web.reactive.function.server.bodyValueAndAwait
+import reactor.core.publisher.Mono
 
 @Service
 class UserService(
@@ -53,19 +49,13 @@ class UserService(
         image = this.image,
     )
 
-    private suspend fun AuthenticationUser.wrap(): ServerResponse {
-        return ServerResponse.ok()
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValueAndAwait(UserWrapper(this))
-    }
-
     private suspend fun User.save(): User {
         return userRepository.save(this).awaitSingle()
     }
 
     @Transactional
-    suspend fun signUp(request: ServerRequest): ServerResponse {
-        return request.awaitBody<UserWrapper<SignUpRequest>>()
+    suspend fun signUp(request: Mono<UserWrapper<SignUpRequest>>): UserWrapper<AuthenticationUser> {
+        return request.awaitSingle()
             .user
             .isValid()
             .fold(
@@ -74,7 +64,7 @@ class UserService(
                     it.toEntity()
                         .save()
                         .toAuthenticationUser()
-                        .wrap()
+                        .let { authenticationUser -> UserWrapper(authenticationUser) }
                 },
             )
     }
