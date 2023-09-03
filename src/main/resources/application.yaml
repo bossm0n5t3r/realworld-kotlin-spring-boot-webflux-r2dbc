@@ -1,0 +1,7 @@
+logging:
+  level:
+    web: debug
+
+spring:
+  jpa:
+    defer-datasource-initialization: true
