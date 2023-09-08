@@ -14,9 +14,9 @@ class UserController(
     private val userService: UserService,
 ) {
     @PostMapping("/api/users")
-    suspend fun signUp(
+    fun signUp(
         @RequestBody signUpRequest: Mono<UserWrapper<SignUpRequest>>,
-    ): UserWrapper<AuthenticationUser> {
+    ): Mono<UserWrapper<AuthenticationUser>> {
         return userService.signUp(signUpRequest)
     }
 }
