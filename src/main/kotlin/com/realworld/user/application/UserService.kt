@@ -6,6 +6,7 @@ import com.realworld.security.UserTokenProvider
 import com.realworld.user.domain.User
 import com.realworld.user.domain.UserRepository
 import com.realworld.user.dto.AuthenticationUser
+import com.realworld.user.dto.SignInRequest
 import com.realworld.user.dto.SignUpRequest
 import com.realworld.user.dto.UserWrapper
 import org.springframework.stereotype.Service
@@ -44,6 +45,16 @@ class UserService(
             }
     }
 
+    private fun User.toAuthenticationUser() = AuthenticationUser(
+        email = this.email,
+        token = userTokenProvider.generateToken(this.id?.toString()),
+        username = this.username,
+        bio = this.bio,
+        image = this.image,
+    )
+
+    private fun AuthenticationUser.withUserWrapper() = UserWrapper(this)
+
     @Transactional
     fun signUp(request: Mono<UserWrapper<SignUpRequest>>): Mono<UserWrapper<AuthenticationUser>> {
         return request
@@ -58,15 +69,28 @@ class UserService(
                 )
             }
             .flatMap { userRepository.save(it) }
-            .map { user ->
-                AuthenticationUser(
-                    email = user.email,
-                    token = userTokenProvider.generateToken(user.id?.toString()),
-                    username = user.username,
-                    bio = user.bio,
-                    image = user.image,
-                )
+            .map { user -> user.toAuthenticationUser() }
+            .map { authenticationUser -> authenticationUser.withUserWrapper() }
+    }
+
+    fun signIn(signInRequest: Mono<UserWrapper<SignInRequest>>): Mono<UserWrapper<AuthenticationUser>> {
+        return signInRequest
+            .publishOn(Schedulers.boundedElastic())
+            .handle { request, sink ->
+                val email = request.user.email
+                val password = request.user.password
+                var found = false
+                userRepository.findAllByEmail(email)
+                    .subscribe {
+                        if (userPasswordEncoder.matches(password, it.encodedPassword)) {
+                            found = true
+                            sink.next(it.toAuthenticationUser().withUserWrapper())
+                            return@subscribe
+                        }
+                    }
+                if (found) return@handle
+                sink.error(InvalidRequestException("User", "not found"))
             }
-            .map { authenticationUser -> UserWrapper(authenticationUser) }
+            .doOnError { throw it }
     }
 }
