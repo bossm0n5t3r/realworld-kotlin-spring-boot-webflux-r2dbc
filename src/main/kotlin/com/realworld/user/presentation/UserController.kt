@@ -1,9 +1,6 @@
 package com.realworld.user.presentation
 
-import com.realworld.security.UserSessionProvider
 import com.realworld.user.application.UserService
-import com.realworld.user.application.toAuthenticationUser
-import com.realworld.user.application.withUserWrapper
 import com.realworld.user.dto.AuthenticationUser
 import com.realworld.user.dto.SignInRequest
 import com.realworld.user.dto.SignUpRequest
@@ -17,7 +14,6 @@ import reactor.core.publisher.Mono
 @RestController
 class UserController(
     private val userService: UserService,
-    private val userSessionProvider: UserSessionProvider,
 ) {
     @PostMapping("/api/users")
     fun signUp(
@@ -36,7 +32,6 @@ class UserController(
     @GetMapping("/api/user")
     fun getUser(): Mono<UserWrapper<AuthenticationUser>> {
         // FIXME Handle error response when throw InvalidJwtException
-        return userSessionProvider.getCurrentUserSession()
-            .map { it.user.toAuthenticationUser(it.token).withUserWrapper() }
+        return userService.getUser()
     }
 }

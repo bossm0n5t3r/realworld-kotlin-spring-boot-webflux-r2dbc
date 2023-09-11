@@ -2,6 +2,7 @@ package com.realworld.user.application
 
 import com.realworld.exception.InvalidRequestException
 import com.realworld.security.UserPasswordEncoder
+import com.realworld.security.UserSessionProvider
 import com.realworld.security.UserTokenProvider
 import com.realworld.user.domain.User
 import com.realworld.user.domain.UserRepository
@@ -19,6 +20,7 @@ class UserService(
     private val userRepository: UserRepository,
     private val userPasswordEncoder: UserPasswordEncoder,
     private val userTokenProvider: UserTokenProvider,
+    private val userSessionProvider: UserSessionProvider,
 ) {
     private fun Mono<UserWrapper<SignUpRequest>>.isValid(): Mono<UserWrapper<SignUpRequest>> {
         return this
@@ -86,5 +88,10 @@ class UserService(
                 sink.error(InvalidRequestException("User", "not found"))
             }
             .doOnError { throw it }
+    }
+
+    fun getUser(): Mono<UserWrapper<AuthenticationUser>> {
+        return userSessionProvider.getCurrentUserSession()
+            .map { it.user.toAuthenticationUser(it.token).withUserWrapper() }
     }
 }
