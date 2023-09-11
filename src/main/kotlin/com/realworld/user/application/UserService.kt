@@ -9,6 +9,7 @@ import com.realworld.user.domain.UserRepository
 import com.realworld.user.dto.AuthenticationUser
 import com.realworld.user.dto.SignInRequest
 import com.realworld.user.dto.SignUpRequest
+import com.realworld.user.dto.UpdateRequest
 import com.realworld.user.dto.UserWrapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -93,5 +94,59 @@ class UserService(
     fun getUser(): Mono<UserWrapper<AuthenticationUser>> {
         return userSessionProvider.getCurrentUserSession()
             .map { it.user.toAuthenticationUser(it.token).withUserWrapper() }
+    }
+
+    fun update(request: Mono<UserWrapper<UpdateRequest>>): Mono<UserWrapper<AuthenticationUser>> {
+        return request
+            .zipWith(userSessionProvider.getCurrentUserSession())
+            .map {
+                val updateRequest = it.t1.user
+                val currentUser = it.t2.user
+
+                User(
+                    id = currentUser.id,
+                    username = resolveUsername(currentUser, updateRequest.username),
+                    email = resolveEmail(currentUser, updateRequest.email),
+                    encodedPassword = resolveEncodedPassword(currentUser, updateRequest.password),
+                    bio = updateRequest.bio ?: currentUser.bio,
+                    image = updateRequest.image ?: currentUser.bio,
+                    followingIds = currentUser.followingIds,
+                    favoriteArticlesIds = currentUser.favoriteArticlesIds,
+                )
+            }
+            .flatMap { userRepository.save(it) }
+            .map { user ->
+                val token = userTokenProvider.generateToken(user.id?.toString())
+                user.toAuthenticationUser(token)
+            }
+            .map { authenticationUser -> authenticationUser.withUserWrapper() }
+    }
+
+    private fun resolveUsername(user: User, newUsername: String?): String {
+        if (newUsername.isNullOrBlank() || user.username == newUsername) {
+            return user.username
+        }
+        userRepository.existsByUsername(newUsername).subscribe {
+            if (it) throw InvalidRequestException("username", "already exists")
+        }
+        return newUsername
+    }
+
+    private fun resolveEmail(user: User, newEmail: String?): String {
+        if (newEmail.isNullOrBlank() || user.email == newEmail) {
+            return user.email
+        }
+        userRepository.existsByEmail(newEmail).subscribe {
+            if (it) throw InvalidRequestException("email", "already exists")
+        }
+        return newEmail
+    }
+
+    private fun resolveEncodedPassword(user: User, newPassword: String?): String {
+        return if (newPassword.isNullOrBlank()) {
+            user.encodedPassword
+        } else {
+            userPasswordEncoder.encode(newPassword)
+        }
     }
 }
