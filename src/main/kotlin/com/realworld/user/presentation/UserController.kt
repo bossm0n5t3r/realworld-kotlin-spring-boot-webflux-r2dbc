@@ -1,10 +1,14 @@
 package com.realworld.user.presentation
 
+import com.realworld.security.UserSessionProvider
 import com.realworld.user.application.UserService
+import com.realworld.user.application.toAuthenticationUser
+import com.realworld.user.application.withUserWrapper
 import com.realworld.user.dto.AuthenticationUser
 import com.realworld.user.dto.SignInRequest
 import com.realworld.user.dto.SignUpRequest
 import com.realworld.user.dto.UserWrapper
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -13,6 +17,7 @@ import reactor.core.publisher.Mono
 @RestController
 class UserController(
     private val userService: UserService,
+    private val userSessionProvider: UserSessionProvider,
 ) {
     @PostMapping("/api/users")
     fun signUp(
@@ -26,5 +31,12 @@ class UserController(
         @RequestBody signInRequest: Mono<UserWrapper<SignInRequest>>,
     ): Mono<UserWrapper<AuthenticationUser>> {
         return userService.signIn(signInRequest)
+    }
+
+    @GetMapping("/api/user")
+    fun getUser(): Mono<UserWrapper<AuthenticationUser>> {
+        // FIXME Handle error response when throw InvalidJwtException
+        return userSessionProvider.getCurrentUserSession()
+            .map { it.user.toAuthenticationUser(it.token).withUserWrapper() }
     }
 }
