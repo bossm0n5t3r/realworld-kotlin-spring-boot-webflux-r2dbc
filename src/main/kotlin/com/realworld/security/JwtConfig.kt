@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter
@@ -47,8 +46,6 @@ class JwtConfig {
                         sink.error(InvalidRequestException("Token", "invalid"))
                     }
                 }
-                .doOnError { throw it }
-                .map { it as Authentication }
         }
 
     @Bean
