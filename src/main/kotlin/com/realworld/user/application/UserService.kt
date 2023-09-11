@@ -45,16 +45,6 @@ class UserService(
             }
     }
 
-    private fun User.toAuthenticationUser() = AuthenticationUser(
-        email = this.email,
-        token = userTokenProvider.generateToken(this.id?.toString()),
-        username = this.username,
-        bio = this.bio,
-        image = this.image,
-    )
-
-    private fun AuthenticationUser.withUserWrapper() = UserWrapper(this)
-
     @Transactional
     fun signUp(request: Mono<UserWrapper<SignUpRequest>>): Mono<UserWrapper<AuthenticationUser>> {
         return request
@@ -69,7 +59,10 @@ class UserService(
                 )
             }
             .flatMap { userRepository.save(it) }
-            .map { user -> user.toAuthenticationUser() }
+            .map { user ->
+                val token = userTokenProvider.generateToken(user.id?.toString())
+                user.toAuthenticationUser(token)
+            }
             .map { authenticationUser -> authenticationUser.withUserWrapper() }
     }
 
@@ -84,7 +77,8 @@ class UserService(
                     .subscribe {
                         if (userPasswordEncoder.matches(password, it.encodedPassword)) {
                             found = true
-                            sink.next(it.toAuthenticationUser().withUserWrapper())
+                            val token = userTokenProvider.generateToken(it.id?.toString())
+                            sink.next(it.toAuthenticationUser(token).withUserWrapper())
                             return@subscribe
                         }
                     }
