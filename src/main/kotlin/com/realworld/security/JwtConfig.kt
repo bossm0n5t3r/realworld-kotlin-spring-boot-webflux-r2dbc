@@ -1,6 +1,7 @@
 package com.realworld.security
 
 import com.realworld.exception.InvalidRequestException
+import org.jose4j.jwt.consumer.InvalidJwtException
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpHeaders
@@ -36,15 +37,15 @@ class JwtConfig {
             Mono.justOrEmpty(authentication)
                 .map { it.credentials as String }
                 .handle { token, sink ->
-                    val jws = signer.validate(token)
-                    if (jws == null) {
+                    try {
+                        val jws = signer.validate(token)
+                        val authority = SimpleGrantedAuthority("ROLE_USER")
+                        val userId = jws.subject
+                        val tokenPrincipal = TokenPrincipal(userId, token)
+                        sink.next(UsernamePasswordAuthenticationToken(tokenPrincipal, token, listOf(authority)))
+                    } catch (e: InvalidJwtException) {
                         sink.error(InvalidRequestException("Token", "invalid"))
-                        return@handle
                     }
-                    val authority = SimpleGrantedAuthority("ROLE_USER")
-                    val userId = jws.subject
-                    val tokenPrincipal = TokenPrincipal(userId, token)
-                    sink.next(UsernamePasswordAuthenticationToken(tokenPrincipal, token, listOf(authority)))
                 }
                 .doOnError { throw it }
                 .map { it as Authentication }
