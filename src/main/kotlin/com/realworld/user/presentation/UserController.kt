@@ -1,5 +1,7 @@
 package com.realworld.user.presentation
 
+import com.realworld.profile.dto.Profile
+import com.realworld.profile.dto.ProfileWrapper
 import com.realworld.user.application.UserService
 import com.realworld.user.dto.AuthenticationUser
 import com.realworld.user.dto.SignInRequest
@@ -7,6 +9,7 @@ import com.realworld.user.dto.SignUpRequest
 import com.realworld.user.dto.UpdateRequest
 import com.realworld.user.dto.UserWrapper
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -43,5 +46,11 @@ class UserController(
     ): Mono<UserWrapper<AuthenticationUser>> {
         // FIXME Handle error response when throw InvalidJwtException
         return userService.update(updateRequest)
+    }
+
+    @GetMapping("/api/profiles/{username}")
+    fun getProfile(@PathVariable username: String): Mono<ProfileWrapper<Profile>> {
+        // FIXME Handle error response when throw InvalidJwtException
+        return userService.getProfile(username)
     }
 }
