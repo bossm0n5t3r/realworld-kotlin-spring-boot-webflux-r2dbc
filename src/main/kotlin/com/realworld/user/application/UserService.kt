@@ -1,6 +1,8 @@
 package com.realworld.user.application
 
 import com.realworld.exception.InvalidRequestException
+import com.realworld.profile.dto.Profile
+import com.realworld.profile.dto.ProfileWrapper
 import com.realworld.security.UserPasswordEncoder
 import com.realworld.security.UserSessionProvider
 import com.realworld.security.UserTokenProvider
@@ -148,5 +150,28 @@ class UserService(
         } else {
             userPasswordEncoder.encode(newPassword)
         }
+    }
+
+    fun getProfile(username: String): Mono<ProfileWrapper<Profile>> {
+        return userRepository.findAllByUsername(username)
+            .next()
+            .switchIfEmpty(Mono.error(InvalidRequestException("username", "not found")))
+            .zipWith(
+                userSessionProvider.getCurrentUserSession()
+                    .map { it.user.followingIdList }
+                    .switchIfEmpty(Mono.just(emptyList())),
+            )
+            .map {
+                val user = it.t1
+                val followingIdListOfViewer = it.t2
+
+                Profile(
+                    username = user.username,
+                    bio = user.bio,
+                    image = user.image,
+                    following = followingIdListOfViewer.contains(user.id),
+                )
+            }
+            .map { ProfileWrapper(it) }
     }
 }
