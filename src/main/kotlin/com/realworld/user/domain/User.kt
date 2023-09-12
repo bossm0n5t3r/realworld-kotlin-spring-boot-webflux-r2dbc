@@ -1,6 +1,7 @@
 package com.realworld.user.domain
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
 import org.springframework.data.relational.core.mapping.Table
 
 @Suppress("LongParameterList")
@@ -28,4 +29,7 @@ data class User(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    @Transient
+    val followingIdList = followingIds?.split(",")?.map { it.toLong() } ?: emptyList()
 }
