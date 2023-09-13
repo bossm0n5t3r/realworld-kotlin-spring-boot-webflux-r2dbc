@@ -8,11 +8,11 @@ import com.realworld.security.UserSessionProvider
 import com.realworld.security.UserTokenProvider
 import com.realworld.user.domain.User
 import com.realworld.user.domain.UserRepository
-import com.realworld.user.dto.AuthenticationUser
-import com.realworld.user.dto.SignInRequest
-import com.realworld.user.dto.SignUpRequest
-import com.realworld.user.dto.UpdateRequest
-import com.realworld.user.dto.UserWrapper
+import com.realworld.user.presentation.dto.AuthenticationUser
+import com.realworld.user.presentation.dto.SignInRequest
+import com.realworld.user.presentation.dto.SignUpRequest
+import com.realworld.user.presentation.dto.UpdateRequest
+import com.realworld.user.presentation.dto.UserWrapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono

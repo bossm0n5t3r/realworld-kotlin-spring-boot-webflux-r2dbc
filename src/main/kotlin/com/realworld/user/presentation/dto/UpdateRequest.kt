@@ -1,4 +1,4 @@
-package com.realworld.user.dto
+package com.realworld.user.presentation.dto
 
 import jakarta.validation.constraints.Email
 

@@ -1,8 +1,8 @@
 package com.realworld.user.application
 
 import com.realworld.user.domain.User
-import com.realworld.user.dto.AuthenticationUser
-import com.realworld.user.dto.UserWrapper
+import com.realworld.user.presentation.dto.AuthenticationUser
+import com.realworld.user.presentation.dto.UserWrapper
 
 fun User.toAuthenticationUser(token: String) = AuthenticationUser(
     email = this.email,

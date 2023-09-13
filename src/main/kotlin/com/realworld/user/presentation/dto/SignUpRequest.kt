@@ -1,4 +1,4 @@
-package com.realworld.user.dto
+package com.realworld.user.presentation.dto
 
 data class SignUpRequest(
     val username: String,

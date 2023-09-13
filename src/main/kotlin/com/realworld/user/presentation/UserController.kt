@@ -3,11 +3,11 @@ package com.realworld.user.presentation
 import com.realworld.profile.dto.Profile
 import com.realworld.profile.dto.ProfileWrapper
 import com.realworld.user.application.UserService
-import com.realworld.user.dto.AuthenticationUser
-import com.realworld.user.dto.SignInRequest
-import com.realworld.user.dto.SignUpRequest
-import com.realworld.user.dto.UpdateRequest
-import com.realworld.user.dto.UserWrapper
+import com.realworld.user.presentation.dto.AuthenticationUser
+import com.realworld.user.presentation.dto.SignInRequest
+import com.realworld.user.presentation.dto.SignUpRequest
+import com.realworld.user.presentation.dto.UpdateRequest
+import com.realworld.user.presentation.dto.UserWrapper
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
