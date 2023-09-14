@@ -1,6 +1,7 @@
 package com.realworld.security
 
-import com.realworld.user.domain.User
+import com.realworld.user.application.dto.UserDto
+import com.realworld.user.application.dto.UserDto.Companion.toDto
 import com.realworld.user.domain.UserRepository
 import org.springframework.security.core.context.ReactiveSecurityContextHolder
 import org.springframework.stereotype.Component
@@ -18,12 +19,12 @@ class UserSessionProvider(
                 val tokenPrincipal = context.authentication.principal as TokenPrincipal
                 userRepository.findAllById(tokenPrincipal.userId.toLong())
                     .next()
-                    .map { UserSession(it, tokenPrincipal.token) }
+                    .map { UserSession(it.toDto(), tokenPrincipal.token) }
             }
     }
 }
 
 data class UserSession(
-    val user: User,
+    val userDto: UserDto,
     val token: String,
 )
