@@ -45,7 +45,6 @@ class UserController(
 
     @GetMapping("/api/user")
     fun getUser(): Mono<UserWrapper<AuthenticationUser>> {
-        // FIXME Handle error response when throw InvalidJwtException
         return userService.getUser()
             .map { it.userDto.toAuthenticationUser(it.token).withUserWrapper() }
     }
@@ -54,14 +53,12 @@ class UserController(
     fun updateUser(
         @RequestBody updateRequest: Mono<UserWrapper<UpdateRequest>>,
     ): Mono<UserWrapper<AuthenticationUser>> {
-        // FIXME Handle error response when throw InvalidJwtException
         return userService.update(updateRequest.map { it.user.toUpdateUserDto() })
             .map { (userDto, token) -> userDto.toAuthenticationUser(token).withUserWrapper() }
     }
 
     @GetMapping("/api/profiles/{username}")
     fun getProfile(@PathVariable username: String): Mono<ProfileWrapper<Profile>> {
-        // FIXME Handle error response when throw InvalidJwtException
         return userService.getProfile(username)
             .map { (userDto, following) -> userDto.toProfile(following).withProfileWrapper() }
     }
