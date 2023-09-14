@@ -1,8 +1,8 @@
 package com.realworld.user.application.dto
 
-import com.realworld.user.presentation.dto.Profile
 import com.realworld.user.domain.User
 import com.realworld.user.presentation.dto.AuthenticationUser
+import com.realworld.user.presentation.dto.Profile
 
 data class UserDto(
     val id: Long? = null,
