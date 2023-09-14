@@ -1,18 +1,18 @@
 package com.realworld.user.application
 
 import com.realworld.exception.InvalidRequestException
-import com.realworld.profile.dto.Profile
-import com.realworld.profile.dto.ProfileWrapper
 import com.realworld.security.UserPasswordEncoder
+import com.realworld.security.UserSession
 import com.realworld.security.UserSessionProvider
 import com.realworld.security.UserTokenProvider
-import com.realworld.user.domain.User
+import com.realworld.user.application.dto.SignInDto
+import com.realworld.user.application.dto.SignUpDto
+import com.realworld.user.application.dto.SignUpDto.Companion.toUserDto
+import com.realworld.user.application.dto.UpdateUserDto
+import com.realworld.user.application.dto.UserDto
+import com.realworld.user.application.dto.UserDto.Companion.toDto
+import com.realworld.user.application.dto.UserDto.Companion.toEntity
 import com.realworld.user.domain.UserRepository
-import com.realworld.user.presentation.dto.AuthenticationUser
-import com.realworld.user.presentation.dto.SignInRequest
-import com.realworld.user.presentation.dto.SignUpRequest
-import com.realworld.user.presentation.dto.UpdateRequest
-import com.realworld.user.presentation.dto.UserWrapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
@@ -25,20 +25,19 @@ class UserService(
     private val userTokenProvider: UserTokenProvider,
     private val userSessionProvider: UserSessionProvider,
 ) {
-    private fun Mono<UserWrapper<SignUpRequest>>.isValid(): Mono<UserWrapper<SignUpRequest>> {
+    private fun Mono<SignUpDto>.isValid(): Mono<SignUpDto> {
         return this
             .publishOn(Schedulers.boundedElastic())
-            .handle { request, sink ->
-                val signUpRequest = request.user
+            .handle { signUpDto, sink ->
                 var isError = false
-                userRepository.existsByEmail(signUpRequest.email).subscribe {
+                userRepository.existsByEmail(signUpDto.email).subscribe {
                     if (it) {
                         isError = true
                         sink.error(InvalidRequestException("email", "already exists"))
                         return@subscribe
                     }
                 }
-                userRepository.existsByUsername(signUpRequest.username).subscribe {
+                userRepository.existsByUsername(signUpDto.username).subscribe {
                     if (it) {
                         isError = true
                         sink.error(InvalidRequestException("username", "already exists"))
@@ -46,44 +45,34 @@ class UserService(
                     }
                 }
                 if (isError) return@handle
-                sink.next(request)
+                sink.next(signUpDto)
             }
     }
 
     @Transactional
-    fun signUp(request: Mono<UserWrapper<SignUpRequest>>): Mono<UserWrapper<AuthenticationUser>> {
-        return request
+    fun signUp(signUpDto: Mono<SignUpDto>): Mono<Pair<UserDto, String>> {
+        return signUpDto
             .isValid()
             .doOnError { throw it }
-            .map {
-                val signUpRequest = it.user
-                User(
-                    email = signUpRequest.email,
-                    username = signUpRequest.username,
-                    encodedPassword = userPasswordEncoder.encode(signUpRequest.password),
-                )
-            }
+            .map { it.toUserDto(userPasswordEncoder.encode(it.password)).toEntity() }
             .flatMap { userRepository.save(it) }
-            .map { user ->
-                val token = userTokenProvider.generateToken(user.id?.toString())
-                user.toAuthenticationUser(token)
-            }
-            .map { authenticationUser -> authenticationUser.withUserWrapper() }
+            .map { it.toDto() to userTokenProvider.generateToken(it.id?.toString()) }
     }
 
-    fun signIn(signInRequest: Mono<UserWrapper<SignInRequest>>): Mono<UserWrapper<AuthenticationUser>> {
-        return signInRequest
+    fun signIn(signInDto: Mono<SignInDto>): Mono<Pair<UserDto, String>> {
+        return signInDto
             .publishOn(Schedulers.boundedElastic())
             .handle { request, sink ->
-                val email = request.user.email
-                val password = request.user.password
+                val email = request.email
+                val password = request.password
                 var found = false
                 userRepository.findAllByEmail(email)
+                    .map { it.toDto() }
                     .subscribe {
                         if (userPasswordEncoder.matches(password, it.encodedPassword)) {
                             found = true
                             val token = userTokenProvider.generateToken(it.id?.toString())
-                            sink.next(it.toAuthenticationUser(token).withUserWrapper())
+                            sink.next(it to token)
                             return@subscribe
                         }
                     }
@@ -93,40 +82,36 @@ class UserService(
             .doOnError { throw it }
     }
 
-    fun getUser(): Mono<UserWrapper<AuthenticationUser>> {
+    fun getUser(): Mono<UserSession> {
         return userSessionProvider.getCurrentUserSession()
-            .map { it.user.toAuthenticationUser(it.token).withUserWrapper() }
     }
 
-    fun update(request: Mono<UserWrapper<UpdateRequest>>): Mono<UserWrapper<AuthenticationUser>> {
+    fun update(request: Mono<UpdateUserDto>): Mono<Pair<UserDto, String>> {
         return request
             .zipWith(userSessionProvider.getCurrentUserSession())
             .map {
-                val updateRequest = it.t1.user
-                val currentUser = it.t2.user
-
-                User(
-                    id = currentUser.id,
-                    username = resolveUsername(currentUser, updateRequest.username),
-                    email = resolveEmail(currentUser, updateRequest.email),
-                    encodedPassword = resolveEncodedPassword(currentUser, updateRequest.password),
-                    bio = updateRequest.bio ?: currentUser.bio,
-                    image = updateRequest.image ?: currentUser.bio,
-                    followingIds = currentUser.followingIds,
-                    favoriteArticlesIds = currentUser.favoriteArticlesIds,
-                )
+                val updateUserDto = it.t1
+                val currentUserDto = it.t2.userDto
+                currentUserDto.updateWith(updateUserDto)
             }
-            .flatMap { userRepository.save(it) }
-            .map { user ->
-                val token = userTokenProvider.generateToken(user.id?.toString())
-                user.toAuthenticationUser(token)
-            }
-            .map { authenticationUser -> authenticationUser.withUserWrapper() }
+            .flatMap { userRepository.save(it.toEntity()) }
+            .map { it.toDto() to userTokenProvider.generateToken(it.id?.toString()) }
     }
 
-    private fun resolveUsername(user: User, newUsername: String?): String {
-        if (newUsername.isNullOrBlank() || user.username == newUsername) {
-            return user.username
+    private fun UserDto.updateWith(updateUserDto: UpdateUserDto) = UserDto(
+        id = this.id,
+        username = resolveUsername(this, updateUserDto.username),
+        email = resolveEmail(this, updateUserDto.email),
+        encodedPassword = resolveEncodedPassword(this, updateUserDto.password),
+        bio = updateUserDto.bio ?: this.bio,
+        image = updateUserDto.image ?: this.bio,
+        followingIdList = this.followingIdList,
+        favoriteArticlesIdList = this.favoriteArticlesIdList,
+    )
+
+    private fun resolveUsername(userDto: UserDto, newUsername: String?): String {
+        if (newUsername.isNullOrBlank() || userDto.username == newUsername) {
+            return userDto.username
         }
         userRepository.existsByUsername(newUsername).subscribe {
             if (it) throw InvalidRequestException("username", "already exists")
@@ -134,9 +119,9 @@ class UserService(
         return newUsername
     }
 
-    private fun resolveEmail(user: User, newEmail: String?): String {
-        if (newEmail.isNullOrBlank() || user.email == newEmail) {
-            return user.email
+    private fun resolveEmail(userDto: UserDto, newEmail: String?): String {
+        if (newEmail.isNullOrBlank() || userDto.email == newEmail) {
+            return userDto.email
         }
         userRepository.existsByEmail(newEmail).subscribe {
             if (it) throw InvalidRequestException("email", "already exists")
@@ -144,34 +129,29 @@ class UserService(
         return newEmail
     }
 
-    private fun resolveEncodedPassword(user: User, newPassword: String?): String {
+    private fun resolveEncodedPassword(userDto: UserDto, newPassword: String?): String {
         return if (newPassword.isNullOrBlank()) {
-            user.encodedPassword
+            userDto.encodedPassword
         } else {
             userPasswordEncoder.encode(newPassword)
         }
     }
 
-    fun getProfile(username: String): Mono<ProfileWrapper<Profile>> {
+    fun getProfile(username: String): Mono<Pair<UserDto, Boolean>> {
         return userRepository.findAllByUsername(username)
             .next()
             .switchIfEmpty(Mono.error(InvalidRequestException("username", "not found")))
+            .map { it.toDto() }
             .zipWith(
                 userSessionProvider.getCurrentUserSession()
-                    .map { it.user.followingIdList }
-                    .switchIfEmpty(Mono.just(emptyList())),
+                    .map { it.userDto.followingIdList.toSet() }
+                    .switchIfEmpty(Mono.just(emptySet())),
             )
             .map {
-                val user = it.t1
+                val userDto = it.t1
                 val followingIdListOfViewer = it.t2
 
-                Profile(
-                    username = user.username,
-                    bio = user.bio,
-                    image = user.image,
-                    following = followingIdListOfViewer.contains(user.id),
-                )
+                userDto to followingIdListOfViewer.contains(userDto.id)
             }
-            .map { ProfileWrapper(it) }
     }
 }
