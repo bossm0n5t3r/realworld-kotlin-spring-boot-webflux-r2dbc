@@ -62,4 +62,10 @@ class UserController(
         return userService.getProfile(username)
             .map { (userDto, following) -> userDto.toProfile(following).withProfileWrapper() }
     }
+
+    @PostMapping("/api/profiles/{username}/follow")
+    fun followUser(@PathVariable username: String): Mono<ProfileWrapper<Profile>> {
+        return userService.followUser(username)
+            .map { (userDto, following) -> userDto.toProfile(following).withProfileWrapper() }
+    }
 }
