@@ -14,6 +14,15 @@ data class UserDto(
     val followingIdList: MutableSet<Long> = mutableSetOf(),
     val favoriteArticlesIdList: MutableSet<Long> = mutableSetOf(),
 ) {
+    fun follow(userIdToFollow: Long?): Boolean {
+        return if (userIdToFollow != null) {
+            followingIdList.add(userIdToFollow)
+            true
+        } else {
+            false
+        }
+    }
+
     companion object {
         fun User.toDto() = UserDto(
             id = this.id,
