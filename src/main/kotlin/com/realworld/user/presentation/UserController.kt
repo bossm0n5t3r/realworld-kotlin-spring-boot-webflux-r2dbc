@@ -15,6 +15,7 @@ import com.realworld.user.presentation.dto.SignInRequest
 import com.realworld.user.presentation.dto.SignUpRequest
 import com.realworld.user.presentation.dto.UpdateRequest
 import com.realworld.user.presentation.dto.UserWrapper
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -66,6 +67,12 @@ class UserController(
     @PostMapping("/api/profiles/{username}/follow")
     fun followUser(@PathVariable username: String): Mono<ProfileWrapper<Profile>> {
         return userService.followUser(username)
+            .map { (userDto, following) -> userDto.toProfile(following).withProfileWrapper() }
+    }
+
+    @DeleteMapping("/api/profiles/{username}/follow")
+    fun unfollowUser(@PathVariable username: String): Mono<ProfileWrapper<Profile>> {
+        return userService.unfollowUser(username)
             .map { (userDto, following) -> userDto.toProfile(following).withProfileWrapper() }
     }
 }
