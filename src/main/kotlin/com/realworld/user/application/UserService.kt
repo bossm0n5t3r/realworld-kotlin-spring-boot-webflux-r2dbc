@@ -1,5 +1,6 @@
 package com.realworld.user.application
 
+import com.realworld.exception.ErrorCode
 import com.realworld.exception.InvalidRequestException
 import com.realworld.security.UserPasswordEncoder
 import com.realworld.security.UserSession
@@ -33,14 +34,14 @@ class UserService(
                 userRepository.existsByEmail(signUpDto.email).subscribe {
                     if (it) {
                         isError = true
-                        sink.error(InvalidRequestException("email", "already exists"))
+                        sink.error(InvalidRequestException(ErrorCode.EMAIL_ALREADY_EXISTS))
                         return@subscribe
                     }
                 }
                 userRepository.existsByUsername(signUpDto.username).subscribe {
                     if (it) {
                         isError = true
-                        sink.error(InvalidRequestException("username", "already exists"))
+                        sink.error(InvalidRequestException(ErrorCode.USERNAME_ALREADY_EXISTS))
                         return@subscribe
                     }
                 }
@@ -77,7 +78,7 @@ class UserService(
                         }
                     }
                 if (found) return@handle
-                sink.error(InvalidRequestException("User", "not found"))
+                sink.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))
             }
             .doOnError { throw it }
     }
@@ -114,7 +115,7 @@ class UserService(
             return userDto.username
         }
         userRepository.existsByUsername(newUsername).subscribe {
-            if (it) throw InvalidRequestException("username", "already exists")
+            if (it) throw InvalidRequestException(ErrorCode.USERNAME_ALREADY_EXISTS)
         }
         return newUsername
     }
@@ -124,7 +125,7 @@ class UserService(
             return userDto.email
         }
         userRepository.existsByEmail(newEmail).subscribe {
-            if (it) throw InvalidRequestException("email", "already exists")
+            if (it) throw InvalidRequestException(ErrorCode.EMAIL_ALREADY_EXISTS)
         }
         return newEmail
     }
@@ -140,7 +141,7 @@ class UserService(
     fun getProfile(username: String): Mono<Pair<UserDto, Boolean>> {
         return userRepository.findAllByUsername(username)
             .next()
-            .switchIfEmpty(Mono.error(InvalidRequestException("username", "not found")))
+            .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USERNAME_NOT_FOUND)))
             .map { it.toDto() }
             .zipWith(
                 userSessionProvider.getCurrentUserSession()

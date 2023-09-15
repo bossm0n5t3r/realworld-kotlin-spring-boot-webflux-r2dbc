@@ -1,5 +1,6 @@
 package com.realworld.security
 
+import com.realworld.exception.ErrorCode
 import com.realworld.exception.InvalidRequestException
 import org.jose4j.jwt.consumer.InvalidJwtException
 import org.springframework.context.annotation.Bean
@@ -43,7 +44,7 @@ class JwtConfig {
                         val tokenPrincipal = TokenPrincipal(userId, token)
                         sink.next(UsernamePasswordAuthenticationToken(tokenPrincipal, token, listOf(authority)))
                     } catch (e: InvalidJwtException) {
-                        sink.error(InvalidRequestException("Token", "invalid"))
+                        sink.error(InvalidRequestException(ErrorCode.TOKEN_INVALID))
                     }
                 }
         }
