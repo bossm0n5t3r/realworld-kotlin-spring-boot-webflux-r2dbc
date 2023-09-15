@@ -23,6 +23,15 @@ data class UserDto(
         }
     }
 
+    fun unfollow(userIdToFollow: Long?): Boolean {
+        return if (userIdToFollow != null) {
+            followingIdList.remove(userIdToFollow)
+            true
+        } else {
+            false
+        }
+    }
+
     companion object {
         fun User.toDto() = UserDto(
             id = this.id,
