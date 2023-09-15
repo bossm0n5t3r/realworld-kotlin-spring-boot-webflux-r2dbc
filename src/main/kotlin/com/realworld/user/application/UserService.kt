@@ -175,4 +175,24 @@ class UserService(
                     .map { user -> user.toDto() to follow }
             }
     }
+
+    fun unfollowUser(username: String): Mono<Pair<UserDto, Boolean>> {
+        return userRepository.findAllByUsername(username)
+            .next()
+            .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND)))
+            .map { it.toDto() }
+            .zipWith(
+                userSessionProvider.getCurrentUserSession()
+                    .map { it.userDto }
+                    .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
+            )
+            .flatMap {
+                val userToFollow = it.t1
+                val currentUserDto = it.t2
+
+                val unfollow = currentUserDto.unfollow(userToFollow.id)
+                userRepository.save(currentUserDto.toEntity())
+                    .map { user -> user.toDto() to unfollow.not() }
+            }
+    }
 }
