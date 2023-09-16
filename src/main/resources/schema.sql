@@ -20,3 +20,16 @@ CREATE TABLE meta_followee_follower
     follower_user_id BIGINT NOT NULL,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE article_info
+(
+    id          BIGINT PRIMARY KEY AUTO_INCREMENT,
+    created_at  DATETIME,
+    updated_at  DATETIME,
+    slug        VARCHAR(500) NOT NULL,
+    authorId    BIGINT       NOT NULL,
+    title       VARCHAR(500) NOT NULL,
+    description VARCHAR(500) NOT NULL,
+    body        VARCHAR(500) NOT NULL,
+    PRIMARY KEY (id)
+);
