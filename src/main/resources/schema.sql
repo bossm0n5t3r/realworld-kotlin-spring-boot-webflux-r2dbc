@@ -45,6 +45,15 @@ CREATE TABLE comment_info
     PRIMARY KEY (id)
 );
 
+CREATE TABLE tag_info
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    name       VARCHAR(500) NOT NULL,
+    PRIMARY KEY (id)
+);
+
 CREATE TABLE meta_article_tag
 (
     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
