@@ -2,6 +2,7 @@ package com.realworld.user.application
 
 import com.realworld.exception.ErrorCode
 import com.realworld.exception.InvalidRequestException
+import com.realworld.meta.application.MetaFolloweeFollowerService
 import com.realworld.security.UserPasswordEncoder
 import com.realworld.security.UserSession
 import com.realworld.security.UserSessionProvider
@@ -16,8 +17,10 @@ import com.realworld.user.application.dto.UserDto.Companion.toEntity
 import com.realworld.user.domain.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
+import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class UserService(
@@ -25,6 +28,7 @@ class UserService(
     private val userPasswordEncoder: UserPasswordEncoder,
     private val userTokenProvider: UserTokenProvider,
     private val userSessionProvider: UserSessionProvider,
+    private val metaFolloweeFollowerService: MetaFolloweeFollowerService,
 ) {
     private fun Mono<SignUpDto>.isValid(): Mono<SignUpDto> {
         return this
@@ -101,13 +105,13 @@ class UserService(
 
     private fun UserDto.updateWith(updateUserDto: UpdateUserDto) = UserDto(
         id = this.id,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
         username = resolveUsername(this, updateUserDto.username),
         email = resolveEmail(this, updateUserDto.email),
         encodedPassword = resolveEncodedPassword(this, updateUserDto.password),
         bio = updateUserDto.bio ?: this.bio,
         image = updateUserDto.image ?: this.bio,
-        followingIdList = this.followingIdList,
-        favoriteArticlesIdList = this.favoriteArticlesIdList,
     )
 
     private fun resolveUsername(userDto: UserDto, newUsername: String?): String {
@@ -145,14 +149,18 @@ class UserService(
             .map { it.toDto() }
             .zipWith(
                 userSessionProvider.getCurrentUserSession()
-                    .map { it.userDto.followingIdList.toSet() }
-                    .switchIfEmpty(Mono.just(emptySet())),
+                    .map { metaFolloweeFollowerService.getFollowingIds(it.userDto.id) }
+                    .switchIfEmpty(Mono.just(Flux.empty())),
             )
-            .map {
+            .flatMap {
                 val userDto = it.t1
                 val followingIdListOfViewer = it.t2
 
-                userDto to followingIdListOfViewer.contains(userDto.id)
+                followingIdListOfViewer.any { followingId -> followingId == userDto.id }
+                    .switchIfEmpty(Mono.just(false))
+                    .map { following ->
+                        userDto to following
+                    }
             }
     }
 
@@ -167,12 +175,15 @@ class UserService(
                     .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
             )
             .flatMap {
-                val userToFollow = it.t1
-                val currentUserDto = it.t2
+                val followeeUserDto = it.t1
+                val followerUserDto = it.t2
 
-                val follow = currentUserDto.follow(userToFollow.id)
-                userRepository.save(currentUserDto.toEntity())
-                    .map { user -> user.toDto() to follow }
+                metaFolloweeFollowerService.follow(
+                    followeeUserId = followeeUserDto.id,
+                    followerUserId = followerUserDto.id,
+                ).map { following ->
+                    followeeUserDto to following
+                }
             }
     }
 
@@ -187,12 +198,15 @@ class UserService(
                     .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
             )
             .flatMap {
-                val userToFollow = it.t1
-                val currentUserDto = it.t2
+                val followeeUserDto = it.t1
+                val followerUserDto = it.t2
 
-                val unfollow = currentUserDto.unfollow(userToFollow.id)
-                userRepository.save(currentUserDto.toEntity())
-                    .map { user -> user.toDto() to unfollow.not() }
+                metaFolloweeFollowerService.unfollow(
+                    followeeUserId = followeeUserDto.id,
+                    followerUserId = followerUserDto.id,
+                ).map { unfollow ->
+                    followeeUserDto to unfollow.not()
+                }
             }
     }
 }
