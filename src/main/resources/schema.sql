@@ -54,3 +54,13 @@ CREATE TABLE meta_article_tag
     tag_id     BIGINT NOT NULL,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE meta_user_favorite_article
+(
+    id                  BIGINT PRIMARY KEY AUTO_INCREMENT,
+    created_at          DATETIME,
+    updated_at          DATETIME,
+    user_id             BIGINT NOT NULL,
+    favorite_article_id BIGINT NOT NULL,
+    PRIMARY KEY (id)
+);
