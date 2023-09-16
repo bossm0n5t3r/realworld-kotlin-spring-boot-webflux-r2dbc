@@ -33,3 +33,14 @@ CREATE TABLE article_info
     body        VARCHAR(500) NOT NULL,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE comment_info
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+    created_at DATETIME,
+    updated_at DATETIME,
+    authorId   BIGINT       NOT NULL,
+    articleId  BIGINT       NOT NULL,
+    body       VARCHAR(500) NOT NULL,
+    PRIMARY KEY (id)
+);
