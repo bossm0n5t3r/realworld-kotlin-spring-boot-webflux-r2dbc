@@ -1,7 +1,6 @@
 logging:
   level:
-    web: debug
-
-spring:
-  jpa:
-    defer-datasource-initialization: true
+    web: DEBUG
+    io.r2dbc.h2.QUERY: DEBUG
+    io.r2dbc.h2.PARAM: DEBUG
+    io.r2dbc: DEBUG
