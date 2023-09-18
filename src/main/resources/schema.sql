@@ -27,7 +27,7 @@ CREATE TABLE article_info
     created_at  DATETIME,
     updated_at  DATETIME,
     slug        VARCHAR(500) NOT NULL,
-    authorId    BIGINT       NOT NULL,
+    author_id BIGINT NOT NULL,
     title       VARCHAR(500) NOT NULL,
     description VARCHAR(500) NOT NULL,
     body        VARCHAR(500) NOT NULL,
@@ -39,8 +39,8 @@ CREATE TABLE comment_info
     id         BIGINT PRIMARY KEY AUTO_INCREMENT,
     created_at DATETIME,
     updated_at DATETIME,
-    authorId   BIGINT       NOT NULL,
-    articleId  BIGINT       NOT NULL,
+    author_id  BIGINT NOT NULL,
+    article_id BIGINT NOT NULL,
     body       VARCHAR(500) NOT NULL,
     PRIMARY KEY (id)
 );
