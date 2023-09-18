@@ -13,14 +13,12 @@ import com.realworld.user.application.dto.SignUpDto.Companion.toUserDto
 import com.realworld.user.application.dto.UpdateUserDto
 import com.realworld.user.application.dto.UserDto
 import com.realworld.user.application.dto.UserDto.Companion.toDto
-import com.realworld.user.application.dto.UserDto.Companion.toEntity
 import com.realworld.user.domain.UserRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Service
 class UserService(

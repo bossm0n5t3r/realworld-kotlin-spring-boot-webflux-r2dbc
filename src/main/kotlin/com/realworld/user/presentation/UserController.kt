@@ -4,12 +4,8 @@ import com.realworld.user.application.UserService
 import com.realworld.user.application.dto.SignInDto.Companion.toSignInDto
 import com.realworld.user.application.dto.SignUpDto.Companion.toSignUpDto
 import com.realworld.user.application.dto.UpdateUserDto.Companion.toUpdateUserDto
-import com.realworld.user.application.dto.UserDto.Companion.toAuthenticationUser
-import com.realworld.user.application.dto.UserDto.Companion.toProfile
 import com.realworld.user.presentation.dto.AuthenticationUser
-import com.realworld.user.presentation.dto.AuthenticationUser.Companion.withUserWrapper
 import com.realworld.user.presentation.dto.Profile
-import com.realworld.user.presentation.dto.Profile.Companion.withProfileWrapper
 import com.realworld.user.presentation.dto.ProfileWrapper
 import com.realworld.user.presentation.dto.SignInRequest
 import com.realworld.user.presentation.dto.SignUpRequest

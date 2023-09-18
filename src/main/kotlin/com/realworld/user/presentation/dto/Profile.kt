@@ -6,7 +6,5 @@ data class Profile(
     val image: String?,
     val following: Boolean,
 ) {
-    companion object {
-        fun Profile.withProfileWrapper() = ProfileWrapper(this)
-    }
+    fun withProfileWrapper() = ProfileWrapper(this)
 }

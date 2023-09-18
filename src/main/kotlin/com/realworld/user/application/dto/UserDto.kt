@@ -15,6 +15,32 @@ data class UserDto(
     val bio: String? = null,
     val image: String? = null,
 ) {
+    fun toEntity() = User(
+        id = this.id,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+        username = this.username,
+        email = this.email,
+        encodedPassword = this.encodedPassword,
+        bio = this.bio,
+        image = this.image,
+    )
+
+    fun toAuthenticationUser(token: String) = AuthenticationUser(
+        email = this.email,
+        token = token,
+        username = this.username,
+        bio = this.bio,
+        image = this.image,
+    )
+
+    fun toProfile(following: Boolean) = Profile(
+        username = this.username,
+        bio = this.bio,
+        image = this.image,
+        following = following,
+    )
+
     companion object {
         fun User.toDto() = UserDto(
             id = this.id,
@@ -25,32 +51,6 @@ data class UserDto(
             encodedPassword = this.encodedPassword,
             bio = this.bio,
             image = this.image,
-        )
-
-        fun UserDto.toEntity() = User(
-            id = this.id,
-            createdAt = this.createdAt,
-            updatedAt = this.updatedAt,
-            username = this.username,
-            email = this.email,
-            encodedPassword = this.encodedPassword,
-            bio = this.bio,
-            image = this.image,
-        )
-
-        fun UserDto.toAuthenticationUser(token: String) = AuthenticationUser(
-            email = this.email,
-            token = token,
-            username = this.username,
-            bio = this.bio,
-            image = this.image,
-        )
-
-        fun UserDto.toProfile(following: Boolean) = Profile(
-            username = this.username,
-            bio = this.bio,
-            image = this.image,
-            following = following,
         )
     }
 }
