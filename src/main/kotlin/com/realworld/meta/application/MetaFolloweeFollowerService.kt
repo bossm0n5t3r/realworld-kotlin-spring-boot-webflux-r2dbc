@@ -17,6 +17,14 @@ class MetaFolloweeFollowerService(
             .map { it.followeeUserId }
     }
 
+    fun isFollow(followeeUserId: Long?, followerUserId: Long?): Mono<Boolean> {
+        if (followeeUserId == null || followerUserId == null) return Mono.just(false)
+        return metaFolloweeFollowerRepository.existsByFolloweeUserIdAndFollowerUserId(
+            followeeUserId = followeeUserId,
+            followerUserId = followerUserId,
+        )
+    }
+
     fun follow(followeeUserId: Long?, followerUserId: Long?): Mono<Boolean> {
         if (followeeUserId == null || followerUserId == null) return Mono.just(false)
 
