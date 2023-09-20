@@ -11,9 +11,9 @@ data class MetaArticleTag(
     @Id
     val id: Long? = null,
     @CreatedDate
-    var createdAt: Instant,
+    var createdAt: Instant = Instant.now(),
     @LastModifiedDate
-    var updatedAt: Instant,
+    var updatedAt: Instant = Instant.now(),
     var articleId: Long,
     var tagId: Long,
 ) {

@@ -11,9 +11,9 @@ data class MetaFolloweeFollower(
     @Id
     val id: Long? = null,
     @CreatedDate
-    var createdAt: Instant,
+    var createdAt: Instant = Instant.now(),
     @LastModifiedDate
-    var updatedAt: Instant,
+    var updatedAt: Instant = Instant.now(),
     var followeeUserId: Long,
     var followerUserId: Long,
 ) {

@@ -11,9 +11,9 @@ data class MetaUserFavoriteArticle(
     @Id
     val id: Long? = null,
     @CreatedDate
-    var createdAt: Instant,
+    var createdAt: Instant = Instant.now(),
     @LastModifiedDate
-    var updatedAt: Instant,
+    var updatedAt: Instant = Instant.now(),
     var userId: Long,
     var favoriteArticleId: Long,
 ) {
