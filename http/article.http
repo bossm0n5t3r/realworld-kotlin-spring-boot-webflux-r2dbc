@@ -1,0 +1,18 @@
+### Create Article
+
+POST localhost:8080/api/articles
+Content-Type: application/json
+Authorization: Token eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImtpZCI6bnVsbCwiY3R5IjoiSldUIiwiZXBrIjp7Imt0eSI6Ik9LUCIsImNydiI6IlgyNTUxOSIsIngiOiJka2dtN2RueENodkNlRzVXa2wzSDZRbTVfMV96RDBGYkJaTm02SDhzQW5zIn19..lTvbzIqmBPkWapgSOQ7pjA.aBYiOeFsfzz1JjsarkqD2KuC9xL60AgbqJ0hi_Z0MZ94t2ldg43aBhCClXyqdwUfPVhnqKsLVWa0nyXlRAzb8UOt3pjMbwWoupKecMDwu8busBHefuPaHMqo_nf7JNOdeuaZYdudu8tWVKPERwo8AScVQcKDts5eu_I6SFxH8H-tgBdJbRGo52Z6eFXAnpQwkqSps79Z3Ujywap3k4lm26v-ioXcwjqLpSqvJGi7nc-ae5S-vekkS8z1rW07rk7ppB-rF6EEusk7eRPuC1BJORwPTcP-XMYBS6qGaNh28f1iUzdso6FyQphYpNkLaQuEYAmjxD5cRp6heIZCsnHNXg.WPpqeBUe18wn4UA_9PJaBg
+
+{
+  "article": {
+    "title": "How to train your dragon",
+    "description": "Ever wonder how?",
+    "body": "You have to believe",
+    "tagList": [
+      "reactjs",
+      "angularjs",
+      "dragons"
+    ]
+  }
+}
