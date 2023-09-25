@@ -71,3 +71,10 @@ tasks.withType<Test> {
 ktlint {
     version.set(ktlintVersion)
 }
+
+tasks.bootJar {
+    enabled = true
+    mainClass.set("com.realworld.RealWorldApplicationKt")
+    archiveFileName.set("realworld-${project.version}.jar")
+    archiveVersion.set(project.version.toString())
+}
