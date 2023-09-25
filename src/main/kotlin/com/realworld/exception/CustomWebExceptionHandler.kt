@@ -13,7 +13,7 @@ import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
 
 @ControllerAdvice
-@Priority(0) /* should go before WebFluxResponseStatusExceptionHandler */
+@Priority(0) // should go before WebFluxResponseStatusExceptionHandler
 class CustomWebExceptionHandler : ErrorWebExceptionHandler {
     override fun handle(exchange: ServerWebExchange, e: Throwable): Mono<Void> {
         return when (e) {
