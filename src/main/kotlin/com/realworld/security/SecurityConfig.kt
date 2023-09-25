@@ -30,6 +30,7 @@ class SecurityConfig {
             .logout { it.disable() }
             .authorizeExchange { exchange ->
                 exchange
+                    .pathMatchers("/actuator/**").permitAll()
                     .pathMatchers(HttpMethod.POST, "/api/users", "/api/users/login").permitAll()
                     .pathMatchers(HttpMethod.GET, "/api/profiles/**").permitAll()
                     .pathMatchers(HttpMethod.GET, "/api/articles/**").permitAll()
