@@ -13,9 +13,10 @@ plugins {
 
 private val r2dbcVersion: String by project
 private val h2Version: String by project
-private val ktlintVersion: String by project
 private val jose4jVersion: String by project
+private val springdocOpenapiVersion: String by project
 private val mockkVersion: String by project
+private val ktlintVersion: String by project
 
 group = "com.realworld"
 version = "1.0-SNAPSHOT"
@@ -44,6 +45,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+
+    // springdoc-openapi
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:$springdocOpenapiVersion")
 
     testImplementation(kotlin("test"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
