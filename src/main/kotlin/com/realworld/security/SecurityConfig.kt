@@ -1,5 +1,6 @@
 package com.realworld.security
 
+import org.springdoc.core.utils.Constants
 import org.springframework.boot.autoconfigure.security.SecurityProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -33,6 +34,12 @@ class SecurityConfig {
                     .pathMatchers(HttpMethod.GET, "/api/profiles/**").permitAll()
                     .pathMatchers(HttpMethod.GET, "/api/articles/**").permitAll()
                     .pathMatchers(HttpMethod.GET, "/api/tags/**").permitAll()
+                    .pathMatchers(
+                        "${Constants.SWAGGER_UI_PREFIX}/**",
+                        "${Constants.DEFAULT_API_DOCS_URL}/**",
+                        Constants.DEFAULT_SWAGGER_UI_PATH,
+                        "${Constants.DEFAULT_WEB_JARS_PREFIX_URL}/**",
+                    ).permitAll()
                     .anyExchange().authenticated()
             }
             .addFilterAt(webFilter, SecurityWebFiltersOrder.AUTHENTICATION)
