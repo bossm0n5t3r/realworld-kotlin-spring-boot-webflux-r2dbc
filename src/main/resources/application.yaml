@@ -1,3 +1,6 @@
+server:
+  port: 1033
+
 logging:
   level:
     web: DEBUG
