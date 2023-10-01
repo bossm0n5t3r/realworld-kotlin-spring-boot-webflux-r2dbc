@@ -4,6 +4,7 @@ import com.realworld.article.application.ArticleService
 import com.realworld.article.presentation.dto.Article
 import com.realworld.article.presentation.dto.ArticleWrapper
 import com.realworld.article.presentation.dto.ArticlesWrapper
+import com.realworld.article.presentation.dto.ArticlesWrapper.Companion.toArticlesWrapper
 import com.realworld.article.presentation.dto.CreateArticleRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -34,6 +35,6 @@ class ArticleController(
         @RequestParam(value = "limit", defaultValue = "20", required = false) limit: Int = 20,
         @RequestParam(value = "offset", defaultValue = "0", required = false) offset: Int = 0,
     ): Mono<ArticlesWrapper<Article>> {
-        return articleService.getArticles(tag, author, favoritedByUser, limit, offset)
+        return articleService.getArticles(tag, author, favoritedByUser, limit, offset).map { it.toArticlesWrapper() }
     }
 }

@@ -6,7 +6,6 @@ import com.realworld.article.domain.ArticleEntity
 import com.realworld.article.domain.ArticleRepository
 import com.realworld.article.domain.ArticleTemplateRepository
 import com.realworld.article.presentation.dto.Article
-import com.realworld.article.presentation.dto.ArticlesWrapper
 import com.realworld.exception.ErrorCode
 import com.realworld.exception.InvalidRequestException
 import com.realworld.meta.application.MetaArticleTagService
@@ -69,7 +68,7 @@ class ArticleService(
         favoritedByUser: String?,
         limit: Int,
         offset: Int,
-    ): Mono<ArticlesWrapper<Article>> {
+    ): Mono<List<Article>> {
         return Mono
             .zip(
                 getFollowingIdSet(),
@@ -91,7 +90,6 @@ class ArticleService(
                     .publishOn(Schedulers.boundedElastic())
                     .map { articleEntity -> getArticle(articleEntity, authorUserDto, followingIdSet) }
                     .collectList()
-                    .map { articles -> ArticlesWrapper(articles = articles, articlesCount = articles.size) }
             }
     }
 
