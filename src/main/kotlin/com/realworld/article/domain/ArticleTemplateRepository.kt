@@ -17,7 +17,7 @@ class ArticleTemplateRepository(
         authorId: Long?,
         limit: Int,
         offset: Long,
-    ): Flux<Article> {
+    ): Flux<ArticleEntity> {
         val query = Query.query(
             CriteriaDefinition.from(
                 getFilteredArticleIdsCriteria(filteredIds),
@@ -26,19 +26,19 @@ class ArticleTemplateRepository(
         )
             .offset(offset)
             .limit(limit)
-            .sort(Sort.by(Sort.Direction.DESC, Article::createdAt.name))
+            .sort(Sort.by(Sort.Direction.DESC, ArticleEntity::createdAt.name))
 
-        return r2dbcEntityTemplate.select(query, Article::class.java)
+        return r2dbcEntityTemplate.select(query, ArticleEntity::class.java)
     }
 
     private fun getFilteredArticleIdsCriteria(filteredIds: Set<Long>) = if (filteredIds.isNotEmpty()) {
-        Criteria.where(Article::id.name).`in`(filteredIds)
+        Criteria.where(ArticleEntity::id.name).`in`(filteredIds)
     } else {
         Criteria.empty()
     }
 
     private fun getAuthorIdCriteria(authorId: Long?) = if (authorId != null) {
-        Criteria.where(Article::authorId.name).`is`(authorId)
+        Criteria.where(ArticleEntity::authorId.name).`is`(authorId)
     } else {
         Criteria.empty()
     }
