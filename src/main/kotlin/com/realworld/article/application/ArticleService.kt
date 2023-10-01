@@ -1,8 +1,8 @@
 package com.realworld.article.application
 
 import com.realworld.article.application.dto.ArticleDto
-import com.realworld.article.application.dto.ArticleDto.Companion.toDto
 import com.realworld.article.application.dto.CreateArticleDto
+import com.realworld.article.domain.ArticleEntity
 import com.realworld.article.domain.ArticleRepository
 import com.realworld.article.domain.ArticleTemplateRepository
 import com.realworld.article.presentation.dto.Article
@@ -72,14 +72,12 @@ class ArticleService(
     ): Mono<ArticlesWrapper<Article>> {
         return Mono
             .zip(
-                userSessionProvider.getCurrentUserSession()
-                    .flatMap { metaFolloweeFollowerService.getFollowingIds(it.userDto.id).collectList() }
-                    .switchIfEmpty(Mono.just(emptyList())),
+                getFollowingIdSet(),
                 Mono.just(userService.getUserDtoFromUsername(author)),
                 Mono.just(userService.getUserDtoFromUsername(favoritedByUser)),
             )
             .flatMap {
-                val followingIdSet = it.t1.toSet()
+                val followingIdSet = it.t1
                 val authorUserDto = it.t2.getOrNull()
                 val favoritedUserId = it.t3.getOrNull()?.id
                 val filteredIds = getFilteredArticleIds(tag, favoritedUserId)
@@ -91,17 +89,16 @@ class ArticleService(
                     offset = offset.toLong(),
                 )
                     .publishOn(Schedulers.boundedElastic())
-                    .map { article ->
-                        val articleAuthorUserDto = authorUserDto
-                            ?: userService.getUserDtoFromUserId(article.authorId).getOrNull()
-                        val profile = articleAuthorUserDto
-                            ?.toProfile(following = followingIdSet.contains(articleAuthorUserDto.id))
-                        article.toDto().toArticle(profile)
-                    }
+                    .map { articleEntity -> getArticle(articleEntity, authorUserDto, followingIdSet) }
                     .collectList()
                     .map { articles -> ArticlesWrapper(articles = articles, articlesCount = articles.size) }
             }
     }
+
+    private fun getFollowingIdSet(): Mono<Set<Long>> = userSessionProvider.getCurrentUserSession()
+        .flatMap { metaFolloweeFollowerService.getFollowingIds(it.userDto.id).collectList() }
+        .map { it.toSet() }
+        .switchIfEmpty(Mono.just(emptySet()))
 
     private fun getFilteredArticleIds(tag: String?, favoritedUserId: Long?): Set<Long> {
         val favoriteArticleIdSet = metaUserFavoriteArticleService.getFavoriteArticleIds(favoritedUserId)
@@ -111,5 +108,13 @@ class ArticleService(
             .getOrNull()
             ?: emptySet()
         return favoriteArticleIdSet.intersect(articleIdSetWithTag)
+    }
+
+    private fun getArticle(articleEntity: ArticleEntity, authorUserDto: UserDto?, followingIdSet: Set<Long>): Article {
+        val articleAuthorUserDto = authorUserDto
+            ?: userService.getUserDtoFromUserId(articleEntity.authorId).getOrNull()
+        val profile = articleAuthorUserDto
+            ?.toProfile(following = followingIdSet.contains(articleAuthorUserDto.id))
+        return articleEntity.toDto().toArticle(profile)
     }
 }
