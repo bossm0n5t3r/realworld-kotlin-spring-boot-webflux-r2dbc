@@ -1,5 +1,7 @@
 package com.realworld.security
 
+import com.realworld.exception.ErrorCode
+import com.realworld.exception.InvalidRequestException
 import com.realworld.user.application.dto.UserDto
 import com.realworld.user.application.dto.UserDto.Companion.toDto
 import com.realworld.user.domain.UserRepository
@@ -22,6 +24,10 @@ class UserSessionProvider(
                     .map { UserSession(it.toDto(), tokenPrincipal.token) }
             }
     }
+
+    fun getCurrentUserDtoOrError() = getCurrentUserSession()
+        .map { it.userDto }
+        .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND)))
 }
 
 data class UserSession(
