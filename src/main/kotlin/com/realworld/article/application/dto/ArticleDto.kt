@@ -27,5 +27,6 @@ data class ArticleDto(
     )
 
     fun toEntity() = ArticleEntity(this)
-    fun toArticle(profile: Profile? = null) = Article(this, profile)
+    fun toArticle(tagList: List<String>? = null, profile: Profile? = null) =
+        Article(this, tagList, profile)
 }

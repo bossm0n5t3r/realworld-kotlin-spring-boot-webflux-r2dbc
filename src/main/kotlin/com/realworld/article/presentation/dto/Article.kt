@@ -16,12 +16,12 @@ data class Article(
     val favoritesCount: Int,
     val author: Profile,
 ) {
-    constructor(dto: ArticleDto, profile: Profile? = null) : this(
+    constructor(dto: ArticleDto, tagList: List<String>? = null, profile: Profile? = null) : this(
         slug = dto.slug,
         title = dto.title,
         description = dto.description,
         body = dto.body,
-        tagList = emptyList(),
+        tagList = tagList ?: emptyList(),
         createdAt = dto.createdAt,
         updatedAt = dto.updatedAt,
         favorited = false,
