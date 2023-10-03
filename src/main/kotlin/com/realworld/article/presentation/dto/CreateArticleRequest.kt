@@ -1,6 +1,6 @@
 package com.realworld.article.presentation.dto
 
-import com.realworld.article.application.dto.CreateArticleDto
+import com.realworld.article.application.dto.CreateArticleParameters
 import jakarta.validation.constraints.NotBlank
 
 data class CreateArticleRequest(
@@ -11,7 +11,7 @@ data class CreateArticleRequest(
     val body: String,
     val tagList: List<String> = emptyList(),
 ) {
-    fun toCreateArticleDto() = CreateArticleDto(
+    fun toCreateArticleParameters() = CreateArticleParameters(
         title = this.title,
         description = this.description,
         body = this.body,

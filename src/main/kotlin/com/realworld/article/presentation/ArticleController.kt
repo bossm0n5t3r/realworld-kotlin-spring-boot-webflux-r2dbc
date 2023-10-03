@@ -21,9 +21,19 @@ class ArticleController(
     fun createArticle(
         @RequestBody createArticleRequest: Mono<ArticleWrapper<CreateArticleRequest>>,
     ): Mono<ArticleWrapper<Article>> {
-        return articleService.createArticle(createArticleRequest.map { it.article.toCreateArticleDto() })
-            .map { (articleDto, userDto, isSelfFollowing) ->
-                articleDto.toArticle(userDto.toProfile(following = isSelfFollowing)).withArticleWrapper()
+        return articleService.createArticle(createArticleRequest.map { it.article.toCreateArticleParameters() })
+            .map {
+                val (
+                    articleDto,
+                    userDto,
+                    tagList,
+                    isSelfFollowing,
+                ) = it
+
+                articleDto.toArticle(
+                    tagList = tagList,
+                    profile = userDto.toProfile(following = isSelfFollowing),
+                ).withArticleWrapper()
             }
     }
 

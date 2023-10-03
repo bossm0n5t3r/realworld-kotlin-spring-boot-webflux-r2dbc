@@ -2,7 +2,7 @@ package com.realworld.article.application.dto
 
 import com.realworld.common.toSlug
 
-data class CreateArticleDto(
+data class CreateArticleParameters(
     val title: String,
     val description: String,
     val body: String,

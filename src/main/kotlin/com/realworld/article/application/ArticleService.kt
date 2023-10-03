@@ -1,7 +1,7 @@
 package com.realworld.article.application
 
-import com.realworld.article.application.dto.ArticleDto
-import com.realworld.article.application.dto.CreateArticleDto
+import com.realworld.article.application.dto.CreateArticleParameters
+import com.realworld.article.application.dto.CreateArticleResult
 import com.realworld.article.domain.ArticleEntity
 import com.realworld.article.domain.ArticleRepository
 import com.realworld.article.domain.ArticleTemplateRepository
@@ -33,7 +33,7 @@ class ArticleService(
     private val metaUserFavoriteArticleService: MetaUserFavoriteArticleService,
     private val metaArticleTagService: MetaArticleTagService,
 ) {
-    fun createArticle(request: Mono<CreateArticleDto>): Mono<Triple<ArticleDto, UserDto, Boolean>> {
+    fun createArticle(request: Mono<CreateArticleParameters>): Mono<CreateArticleResult> {
         return request
             .zipWith(
                 userSessionProvider.getCurrentUserSession()
@@ -57,7 +57,7 @@ class ArticleService(
                     }
                     .flatMap { pair ->
                         metaFolloweeFollowerService.isFollow(authorId, authorId).map { isSelfFollowing ->
-                            Triple(pair.first, pair.second, isSelfFollowing)
+                            CreateArticleResult(pair.first, pair.second, createArticleDto.tagList, isSelfFollowing)
                         }
                     }
             }
