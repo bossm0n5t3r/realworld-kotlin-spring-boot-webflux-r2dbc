@@ -6,5 +6,6 @@ import reactor.core.publisher.Flux
 
 @Repository
 interface MetaArticleTagRepository : R2dbcRepository<MetaArticleTag, Long> {
+    fun findAllByArticleId(articleId: Long): Flux<MetaArticleTag>
     fun findAllByTagIdIn(tagIds: Collection<Long>): Flux<MetaArticleTag>
 }

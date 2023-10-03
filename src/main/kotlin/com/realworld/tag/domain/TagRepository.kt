@@ -7,4 +7,5 @@ import reactor.core.publisher.Flux
 @Repository
 interface TagRepository : R2dbcRepository<Tag, Long> {
     fun findAllByName(name: String): Flux<Tag>
+    fun findAllByIdIsIn(ids: Collection<Long>): Flux<Tag>
 }
