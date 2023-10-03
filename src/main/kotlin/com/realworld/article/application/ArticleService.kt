@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.kotlin.core.publisher.toFlux
+import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
 @Service
@@ -69,50 +70,95 @@ class ArticleService(
         limit: Int,
         offset: Int,
     ): Mono<List<Article>> {
+        // FIXME 메서드가 너무 길어서 리팩터링 필요
         return Mono
             .zip(
-                getFollowingIdSet(),
-                Mono.just(userService.getUserDtoFromUsername(author)),
-                Mono.just(userService.getUserDtoFromUsername(favoritedByUser)),
+                userSessionProvider.getCurrentUserSession()
+                    .flatMap { getFollowingIdSetOrEmpty(it.userDto.id) }
+                    .switchIfEmpty(Mono.just(emptySet())),
+                getOptionalUserDtoFromUsername(author),
+                getOptionalUserDtoFromUsername(favoritedByUser),
             )
             .flatMap {
                 val followingIdSet = it.t1
                 val authorUserDto = it.t2.getOrNull()
                 val favoritedUserId = it.t3.getOrNull()?.id
-                val filteredIds = getFilteredArticleIds(tag, favoritedUserId)
 
-                articleTemplateRepository.findNewestArticlesFilteredBy(
-                    filteredIds = filteredIds,
-                    authorId = authorUserDto?.id,
-                    limit = limit,
-                    offset = offset.toLong(),
-                )
-                    .publishOn(Schedulers.boundedElastic())
-                    .map { articleEntity -> getArticle(articleEntity, authorUserDto, followingIdSet) }
-                    .collectList()
+                getFilteredArticleIds(tag, favoritedUserId)
+                    .flatMap { filteredIds ->
+                        articleTemplateRepository.findNewestArticlesFilteredBy(
+                            filteredIds = filteredIds,
+                            authorId = authorUserDto?.id,
+                            limit = limit,
+                            offset = offset.toLong(),
+                        )
+                            .publishOn(Schedulers.boundedElastic())
+                            .flatMap { articleEntity ->
+                                articleEntity.toArticle(authorUserDto, followingIdSet)
+                            }
+                            .collectList()
+                    }
             }
     }
 
-    private fun getFollowingIdSet(): Mono<Set<Long>> = userSessionProvider.getCurrentUserSession()
-        .flatMap { metaFolloweeFollowerService.getFollowingIds(it.userDto.id).collectList() }
-        .map { it.toSet() }
-        .switchIfEmpty(Mono.just(emptySet()))
+    private fun getFollowingIdSetOrEmpty(userId: Long?) =
+        metaFolloweeFollowerService.getFollowingIds(userId)
+            .collectList()
+            .map { it.toSet() }
+            .switchIfEmpty(Mono.just(emptySet()))
 
-    private fun getFilteredArticleIds(tag: String?, favoritedUserId: Long?): Set<Long> {
-        val favoriteArticleIdSet = metaUserFavoriteArticleService.getFavoriteArticleIds(favoritedUserId)
-            .getOrNull()
-            ?: emptySet()
-        val articleIdSetWithTag = metaArticleTagService.getArticleIdsFromTagName(tag)
-            .getOrNull()
-            ?: emptySet()
-        return favoriteArticleIdSet.intersect(articleIdSetWithTag)
+    private fun getOptionalUserDtoFromUsername(username: String?) =
+        userService.getUserDtoFromUsername(username)
+            .map { Optional.of(it) }
+            .switchIfEmpty(Mono.just(Optional.empty()))
+
+    private fun getFilteredArticleIds(tag: String?, favoritedUserId: Long?): Mono<Set<Long>> {
+        return Mono.zip(
+            metaUserFavoriteArticleService.getFavoriteArticleIds(favoritedUserId),
+            metaArticleTagService.getArticleIdsFromTagName(tag),
+        )
+            .map {
+                val favoriteArticleIds = it.t1
+                val articleIdsFromTagName = it.t2
+                /**
+                 * FIXME
+                 *  tag 의 값이 존재하지만, 해당 tag 에 해당하는 articleIds 가 비어있을 때와
+                 *  tag 파라미터 자체가 없어서, union 을 해야하는 경우를 분리해야한다.
+                 */
+                if (favoriteArticleIds.isEmpty() || articleIdsFromTagName.isEmpty()) {
+                    it.t1.union(it.t2)
+                } else {
+                    it.t1.intersect(it.t2)
+                }
+            }
     }
 
-    private fun getArticle(articleEntity: ArticleEntity, authorUserDto: UserDto?, followingIdSet: Set<Long>): Article {
-        val articleAuthorUserDto = authorUserDto
-            ?: userService.getUserDtoFromUserId(articleEntity.authorId).getOrNull()
-        val profile = articleAuthorUserDto
-            ?.toProfile(following = followingIdSet.contains(articleAuthorUserDto.id))
-        return articleEntity.toDto().toArticle(profile)
+    private fun ArticleEntity.toArticle(
+        authorUserDto: UserDto?,
+        followingIdSet: Set<Long>,
+    ): Mono<Article> {
+        return (
+            authorUserDto
+                ?.let { Mono.just(Optional.of(it)) }
+                ?: userService.getUserDtoFromUserId(this.authorId)
+                    .map { Optional.of(it) }
+                    .switchIfEmpty(Mono.just(Optional.empty()))
+            )
+            .map {
+                val articleAuthorUserDto = it.getOrNull()
+                Optional.ofNullable(
+                    articleAuthorUserDto?.toProfile(
+                        following = followingIdSet.contains(
+                            articleAuthorUserDto.id,
+                        ),
+                    ),
+                )
+            }
+            .zipWith(metaArticleTagService.getTagsFromArticleId(this.id))
+            .map {
+                val profile = it.t1.getOrNull()
+                val tagList = it.t2
+                this.toDto().toArticle(tagList, profile)
+            }
     }
 }
