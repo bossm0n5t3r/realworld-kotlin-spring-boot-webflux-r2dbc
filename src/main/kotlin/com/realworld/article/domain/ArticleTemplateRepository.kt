@@ -13,8 +13,8 @@ class ArticleTemplateRepository(
     private val r2dbcEntityTemplate: R2dbcEntityTemplate,
 ) {
     fun findNewestArticlesFilteredBy(
-        filteredIds: Set<Long>,
-        authorId: Long?,
+        filteredIds: Set<Long>? = null,
+        authorId: Long? = null,
         limit: Int,
         offset: Long,
     ): Flux<ArticleEntity> {
@@ -31,10 +31,10 @@ class ArticleTemplateRepository(
         return r2dbcEntityTemplate.select(query, ArticleEntity::class.java)
     }
 
-    private fun getFilteredArticleIdsCriteria(filteredIds: Set<Long>) = if (filteredIds.isNotEmpty()) {
-        Criteria.where(ArticleEntity::id.name).`in`(filteredIds)
-    } else {
+    private fun getFilteredArticleIdsCriteria(filteredIds: Set<Long>?) = if (filteredIds.isNullOrEmpty()) {
         Criteria.empty()
+    } else {
+        Criteria.where(ArticleEntity::id.name).`in`(filteredIds)
     }
 
     private fun getAuthorIdCriteria(authorId: Long?) = if (authorId != null) {
