@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
-import java.util.Optional
 
 @Service
 class UserService(
@@ -209,19 +208,17 @@ class UserService(
             }
     }
 
-    fun getUserDtoFromUsername(username: String?): Optional<UserDto> {
-        if (username == null) return Optional.empty()
+    fun getUserDtoFromUsername(username: String?): Mono<UserDto> {
+        if (username == null) return Mono.empty()
         return userRepository.findAllByUsername(username)
             .next()
             .map { user -> user.toDto() }
-            .blockOptional()
     }
 
-    fun getUserDtoFromUserId(userId: Long?): Optional<UserDto> {
-        if (userId == null) return Optional.empty()
+    fun getUserDtoFromUserId(userId: Long?): Mono<UserDto> {
+        if (userId == null) return Mono.empty()
         return userRepository.findAllById(userId)
             .next()
             .map { user -> user.toDto() }
-            .blockOptional()
     }
 }
