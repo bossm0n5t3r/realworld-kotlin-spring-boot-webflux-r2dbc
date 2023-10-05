@@ -43,7 +43,7 @@ class ArticleController(
         @RequestParam(value = "author", required = false) author: String? = null,
         @RequestParam(value = "favorited", required = false) favoritedByUser: String? = null,
         @RequestParam(value = "limit", defaultValue = "20", required = false) limit: Int = 20,
-        @RequestParam(value = "offset", defaultValue = "0", required = false) offset: Int = 0,
+        @RequestParam(value = "offset", defaultValue = "0", required = false) offset: Long = 0,
     ): Mono<ArticlesWrapper<Article>> {
         return articleService.getArticles(tag, author, favoritedByUser, limit, offset).map { it.toArticlesWrapper() }
     }

@@ -68,7 +68,7 @@ class ArticleService(
         author: String?,
         favoritedByUser: String?,
         limit: Int,
-        offset: Int,
+        offset: Long,
     ): Mono<List<Article>> {
         // FIXME 메서드가 너무 길어서 리팩터링 필요
         return Mono
@@ -90,7 +90,7 @@ class ArticleService(
                             filteredIds = filteredIds,
                             authorId = authorUserDto?.id,
                             limit = limit,
-                            offset = offset.toLong(),
+                            offset = offset,
                         )
                             .publishOn(Schedulers.boundedElastic())
                             .flatMap { articleEntity ->
