@@ -6,6 +6,7 @@ import com.realworld.article.domain.ArticleEntity
 import com.realworld.article.domain.ArticleRepository
 import com.realworld.article.domain.ArticleTemplateRepository
 import com.realworld.article.presentation.dto.Article
+import com.realworld.common.domain.OffsetBasedPageable
 import com.realworld.exception.ErrorCode
 import com.realworld.exception.InvalidRequestException
 import com.realworld.meta.application.MetaArticleTagService
@@ -15,6 +16,7 @@ import com.realworld.security.UserSessionProvider
 import com.realworld.tag.application.TagService
 import com.realworld.user.application.UserService
 import com.realworld.user.application.dto.UserDto
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
@@ -159,6 +161,22 @@ class ArticleService(
                 val profile = it.t1.getOrNull()
                 val tagList = it.t2
                 this.toDto().toArticle(tagList, profile)
+            }
+    }
+
+    fun feed(limit: Int, offset: Long): Mono<List<Article>> {
+        return userSessionProvider.getCurrentUserDtoOrError()
+            .flatMap { getFollowingIdSetOrEmpty(it.id) }
+            .flatMap { followingIdSet ->
+                articleRepository.findAllByAuthorIdIn(
+                    followingIdSet,
+                    OffsetBasedPageable(limit, offset, Sort.by(Sort.Direction.DESC, ArticleEntity::createdAt.name)),
+                )
+                    .publishOn(Schedulers.boundedElastic())
+                    .flatMap { articleEntity ->
+                        articleEntity.toArticle(null, followingIdSet)
+                    }
+                    .collectList()
             }
     }
 }

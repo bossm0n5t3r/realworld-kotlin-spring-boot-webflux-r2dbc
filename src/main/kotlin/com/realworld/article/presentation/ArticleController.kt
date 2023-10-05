@@ -47,4 +47,10 @@ class ArticleController(
     ): Mono<ArticlesWrapper<Article>> {
         return articleService.getArticles(tag, author, favoritedByUser, limit, offset).map { it.toArticlesWrapper() }
     }
+
+    @GetMapping("/api/articles/feed")
+    fun feed(
+        @RequestParam(value = "limit", defaultValue = "20", required = false) limit: Int = 20,
+        @RequestParam(value = "offset", defaultValue = "0", required = false) offset: Long = 0,
+    ): Mono<ArticlesWrapper<Article>> = articleService.feed(limit, offset).map { it.toArticlesWrapper() }
 }
