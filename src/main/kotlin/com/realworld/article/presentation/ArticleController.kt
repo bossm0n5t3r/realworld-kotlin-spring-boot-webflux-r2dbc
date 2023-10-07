@@ -7,6 +7,7 @@ import com.realworld.article.presentation.dto.ArticlesWrapper
 import com.realworld.article.presentation.dto.ArticlesWrapper.Companion.toArticlesWrapper
 import com.realworld.article.presentation.dto.CreateArticleRequest
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -53,4 +54,21 @@ class ArticleController(
         @RequestParam(value = "limit", defaultValue = "20", required = false) limit: Int = 20,
         @RequestParam(value = "offset", defaultValue = "0", required = false) offset: Long = 0,
     ): Mono<ArticlesWrapper<Article>> = articleService.feed(limit, offset).map { it.toArticlesWrapper() }
+
+    @GetMapping("/api/articles/{slug}")
+    fun getArticle(@PathVariable slug: String): Mono<ArticleWrapper<Article>> =
+        articleService.getArticle(slug)
+            .map {
+                val (
+                    articleDto,
+                    authorDto,
+                    tagList,
+                    isSelfFollowing,
+                ) = it
+
+                articleDto.toArticle(
+                    tagList = tagList,
+                    profile = authorDto.toProfile(following = isSelfFollowing),
+                ).withArticleWrapper()
+            }
 }

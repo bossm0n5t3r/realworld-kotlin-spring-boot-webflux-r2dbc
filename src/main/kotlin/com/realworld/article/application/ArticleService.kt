@@ -179,4 +179,28 @@ class ArticleService(
                     .collectList()
             }
     }
+
+    fun getArticle(slug: String): Mono<ArticleResult> {
+        return articleRepository.findBySlug(slug)
+            .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND)))
+            .flatMap { articleEntity ->
+                val articleDto = articleEntity.toDto()
+
+                Mono.zip(
+                    userService.getUserDtoFromUserId(articleDto.authorId)
+                        .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
+                    metaArticleTagService.getTagsFromArticleId(articleDto.id),
+                ).map {
+                    val authorDto = it.t1
+                    val tagList = it.t2
+
+                    ArticleResult(
+                        articleDto = articleDto,
+                        authorDto = authorDto,
+                        tagList = tagList,
+                        isSelfFollowing = false,
+                    )
+                }
+            }
+    }
 }
