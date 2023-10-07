@@ -25,14 +25,14 @@ class ArticleController(
             .map {
                 val (
                     articleDto,
-                    userDto,
+                    authorDto,
                     tagList,
                     isSelfFollowing,
                 ) = it
 
                 articleDto.toArticle(
                     tagList = tagList,
-                    profile = userDto.toProfile(following = isSelfFollowing),
+                    profile = authorDto.toProfile(following = isSelfFollowing),
                 ).withArticleWrapper()
             }
     }
