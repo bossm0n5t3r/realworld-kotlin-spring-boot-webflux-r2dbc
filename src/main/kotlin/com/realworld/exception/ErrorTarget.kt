@@ -6,4 +6,5 @@ enum class ErrorTarget {
     USER,
     TOKEN,
     AUTHORIZATION_HEADER,
+    ARTICLE,
 }
