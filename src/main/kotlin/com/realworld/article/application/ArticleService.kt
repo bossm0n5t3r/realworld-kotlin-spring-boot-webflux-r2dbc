@@ -2,6 +2,7 @@ package com.realworld.article.application
 
 import com.realworld.article.application.dto.ArticleResult
 import com.realworld.article.application.dto.CreateArticleParameters
+import com.realworld.article.application.dto.UpdateArticleParameters
 import com.realworld.article.domain.ArticleEntity
 import com.realworld.article.domain.ArticleRepository
 import com.realworld.article.domain.ArticleTemplateRepository
@@ -201,6 +202,42 @@ class ArticleService(
                         isSelfFollowing = false,
                     )
                 }
+            }
+    }
+
+    fun updateArticle(slug: String, updateArticleParameters: Mono<UpdateArticleParameters>): Mono<ArticleResult> {
+        return Mono
+            .zip(
+                updateArticleParameters,
+                userSessionProvider.getCurrentUserSession()
+                    .mapNotNull { it.userDto }
+                    .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
+                articleRepository.findBySlug(slug)
+                    .map { it.toDto() }
+                    .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND))),
+            )
+            .flatMap {
+                val updateArticleRequest = it.t1
+                val authorDto = it.t2
+                val originArticleDto = it.t3
+
+                val updatedArticleDto = originArticleDto.update(updateArticleRequest)
+
+                Mono.zip(
+                    articleRepository.save(updatedArticleDto.toEntity())
+                        .map { saved -> saved.toDto() },
+                    Mono.just(authorDto),
+                    metaArticleTagService.getTagsFromArticleId(updatedArticleDto.id),
+                    metaFolloweeFollowerService.isFollow(authorDto.id, authorDto.id),
+                )
+            }
+            .map {
+                ArticleResult(
+                    articleDto = it.t1,
+                    authorDto = it.t2,
+                    tagList = it.t3,
+                    isSelfFollowing = it.t4,
+                )
             }
     }
 }

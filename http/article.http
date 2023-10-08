@@ -47,3 +47,13 @@ Authorization: Token eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImtpZCI
 ### Get Article
 
 GET {{host}}/api/articles/how-to-train-your-dragon-10
+
+### Update Article
+
+PUT {{host}}/api/articles/how-to-train-your-dragon
+Authorization: Token eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImtpZCI6bnVsbCwiY3R5IjoiSldUIiwiZXBrIjp7Imt0eSI6Ik9LUCIsImNydiI6IlgyNTUxOSIsIngiOiJZMTV1NE5aTk5wVVZHVExtMmJjOVQzSlBVUXpkSGgtR3dGNmpHZkZYYUVnIn19..F9B5SI7K62Pz0be5xkaSGQ.UpcZtP6nbzysU6SKU0ebWYHlf6rwfJZkjmsp7Q9kFeHcjdUkKFhJf_IltWPggSemP3a_Ld562Ks28fVRiVMSvwHEc3DlcTpzaIF5XEEjwuJwJXaLMN117p2K5y8bv3jwFDFIOUh7pLvPVciJCZKpqtGTA4MWxSwTHiKa4AtVGTHGG87gOaWRz52tYa7uvE5CLWQfWS68DelTHyj_ToGnUgv_rk_aGD_zfeCvUJnShS_9rkred-VTgPDqYqFlesHhu2HZcyVhp8vMr9rBYVekfKQGAA-PvZraMbD0B8MrSJFp-im9G3f-Id9J8eOzqUL0osL0iP0jh1Pj_DYH2aj3Bg.VsFyp2uHV46pEmoOFNFIew
+Content-Type: application/stream+json
+
+{
+  "title": "NEW How to train your dragon"
+}

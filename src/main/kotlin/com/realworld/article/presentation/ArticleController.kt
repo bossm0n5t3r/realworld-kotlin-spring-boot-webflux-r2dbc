@@ -51,6 +51,14 @@ class ArticleController(
         articleService.getArticle(slug)
             .map { it.toArticleWithWrapper() }
 
+    @PutMapping("/api/articles/{slug}")
+    fun updateArticle(
+        @PathVariable slug: String,
+        @RequestBody updateArticleRequest: Mono<UpdateArticleRequest>,
+    ): Mono<ArticleWrapper<Article>> =
+        articleService.updateArticle(slug, updateArticleRequest.map { it.toUpdateArticleParameters() })
+            .map { it.toArticleWithWrapper() }
+
     private fun ArticleResult.toArticleWithWrapper(): ArticleWrapper<Article> {
         val (
             articleDto,
