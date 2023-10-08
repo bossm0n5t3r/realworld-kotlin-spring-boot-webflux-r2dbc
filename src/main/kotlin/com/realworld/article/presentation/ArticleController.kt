@@ -1,14 +1,17 @@
 package com.realworld.article.presentation
 
 import com.realworld.article.application.ArticleService
+import com.realworld.article.application.dto.ArticleResult
 import com.realworld.article.presentation.dto.Article
 import com.realworld.article.presentation.dto.ArticleWrapper
 import com.realworld.article.presentation.dto.ArticlesWrapper
 import com.realworld.article.presentation.dto.ArticlesWrapper.Companion.toArticlesWrapper
 import com.realworld.article.presentation.dto.CreateArticleRequest
+import com.realworld.article.presentation.dto.UpdateArticleRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -23,19 +26,7 @@ class ArticleController(
         @RequestBody createArticleRequest: Mono<ArticleWrapper<CreateArticleRequest>>,
     ): Mono<ArticleWrapper<Article>> {
         return articleService.createArticle(createArticleRequest.map { it.article.toCreateArticleParameters() })
-            .map {
-                val (
-                    articleDto,
-                    authorDto,
-                    tagList,
-                    isSelfFollowing,
-                ) = it
-
-                articleDto.toArticle(
-                    tagList = tagList,
-                    profile = authorDto.toProfile(following = isSelfFollowing),
-                ).withArticleWrapper()
-            }
+            .map { it.toArticleWithWrapper() }
     }
 
     @GetMapping("/api/articles")
@@ -58,17 +49,19 @@ class ArticleController(
     @GetMapping("/api/articles/{slug}")
     fun getArticle(@PathVariable slug: String): Mono<ArticleWrapper<Article>> =
         articleService.getArticle(slug)
-            .map {
-                val (
-                    articleDto,
-                    authorDto,
-                    tagList,
-                    isSelfFollowing,
-                ) = it
+            .map { it.toArticleWithWrapper() }
 
-                articleDto.toArticle(
-                    tagList = tagList,
-                    profile = authorDto.toProfile(following = isSelfFollowing),
-                ).withArticleWrapper()
-            }
+    private fun ArticleResult.toArticleWithWrapper(): ArticleWrapper<Article> {
+        val (
+            articleDto,
+            authorDto,
+            tagList,
+            isSelfFollowing,
+        ) = this
+
+        return articleDto.toArticle(
+            tagList = tagList,
+            profile = authorDto.toProfile(following = isSelfFollowing),
+        ).withArticleWrapper()
+    }
 }
