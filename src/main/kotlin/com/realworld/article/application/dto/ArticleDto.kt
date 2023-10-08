@@ -2,6 +2,7 @@ package com.realworld.article.application.dto
 
 import com.realworld.article.domain.ArticleEntity
 import com.realworld.article.presentation.dto.Article
+import com.realworld.common.toSlug
 import com.realworld.user.presentation.dto.Profile
 import java.time.Instant
 
@@ -29,4 +30,25 @@ data class ArticleDto(
     fun toEntity() = ArticleEntity(this)
     fun toArticle(tagList: List<String>? = null, profile: Profile? = null) =
         Article(this, tagList, profile)
+
+    fun update(updateArticleParameters: UpdateArticleParameters): ArticleDto {
+        if (
+            updateArticleParameters.title == null &&
+            updateArticleParameters.description == null &&
+            updateArticleParameters.body == null
+        ) {
+            return this
+        }
+
+        return ArticleDto(
+            id = this.id,
+            createdAt = this.createdAt,
+            updatedAt = Instant.now(),
+            slug = updateArticleParameters.title?.toSlug() ?: this.slug,
+            authorId = this.authorId,
+            title = updateArticleParameters.title ?: this.title,
+            description = updateArticleParameters.description ?: this.description,
+            body = updateArticleParameters.body ?: this.body,
+        )
+    }
 }
