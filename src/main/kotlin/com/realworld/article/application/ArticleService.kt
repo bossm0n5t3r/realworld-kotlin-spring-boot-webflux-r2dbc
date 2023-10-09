@@ -240,4 +240,26 @@ class ArticleService(
                 )
             }
     }
+
+    fun deleteArticle(slug: String): Mono<Unit> = Mono
+        .zip(
+            userSessionProvider.getCurrentUserSession()
+                .map { it.userDto }
+                .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
+            articleRepository.findBySlug(slug)
+                .map { it.toDto() }
+                .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND))),
+        )
+        .publishOn(Schedulers.boundedElastic())
+        .handle { it, sink ->
+            val userDto = it.t1
+            val articleDto = it.t2
+
+            if (articleDto.authorId != userDto.id) {
+                sink.error(InvalidRequestException(ErrorCode.USER_NOT_MATCHED_AUTHOR))
+                return@handle
+            }
+
+            articleRepository.delete(articleDto.toEntity()).subscribe()
+        }
 }

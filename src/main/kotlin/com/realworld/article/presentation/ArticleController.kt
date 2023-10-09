@@ -8,6 +8,7 @@ import com.realworld.article.presentation.dto.ArticlesWrapper
 import com.realworld.article.presentation.dto.ArticlesWrapper.Companion.toArticlesWrapper
 import com.realworld.article.presentation.dto.CreateArticleRequest
 import com.realworld.article.presentation.dto.UpdateArticleRequest
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -72,4 +73,7 @@ class ArticleController(
             profile = authorDto.toProfile(following = isSelfFollowing),
         ).withArticleWrapper()
     }
+
+    @DeleteMapping("/api/articles/{slug}")
+    fun deleteArticle(@PathVariable slug: String) = articleService.deleteArticle(slug)
 }
