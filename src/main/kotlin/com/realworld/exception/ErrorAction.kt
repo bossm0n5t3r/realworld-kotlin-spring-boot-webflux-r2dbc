@@ -5,4 +5,5 @@ enum class ErrorAction {
     NOT_FOUND,
     INVALID,
     HAS_NO_TOKEN_PREFIX,
+    NOT_MATCHED_AUTHOR,
 }
