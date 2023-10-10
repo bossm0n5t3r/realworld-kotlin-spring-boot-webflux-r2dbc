@@ -1,0 +1,11 @@
+### Add Comments to an Article
+
+POST {{host}}/api/articles/how-to-train-your-dragon-1/comments
+Authorization: Token eyJhbGciOiJFQ0RILUVTIiwiZW5jIjoiQTEyOENCQy1IUzI1NiIsImtpZCI6bnVsbCwiY3R5IjoiSldUIiwiZXBrIjp7Imt0eSI6Ik9LUCIsImNydiI6IlgyNTUxOSIsIngiOiJoUi16dm8xNHpDV1lIQTZ4THlzWWxiWUQtc3dNX1lUZjEwNlpFOGRYYlNFIn19..1Zujt5GpJ5vYJkE35JYxtQ.NEjkFN1yz8dF_ALg3Hkzm8W-nrLuTKprVozK-CYxlAF7BnfUePe5cMTtQeve2dUlxBMP2PLujNbV9bqfQVJqnH3BCRH0rP1wGMqepHsJ4U_wreU9WDhZZ0GMhuP3gHBzAb5rTUmko0mO5sSnT6v4MdAzAxvTY9Y8bAFZ9yLz_pDqjoAEfxecFCuocnU4lChos7k5m_YAFyhgprlulKMlqh0J3kkwh-vt5QTXbEYhS_0zflRomNaYJPT_rVcqc1lKbU5NLKsfKkwKhjBLp5o_9EDjBJymVWEv04pqVibmn-RPxuAwvZB5uco3HGcTWzXQnrsFLYpvv1JASDdK-USLDQ.5T2E2M-ZXi8O33bRIWkC1w
+Content-Type: application/stream+json
+
+{
+  "comment": {
+    "body": "His name was my name too."
+  }
+}
