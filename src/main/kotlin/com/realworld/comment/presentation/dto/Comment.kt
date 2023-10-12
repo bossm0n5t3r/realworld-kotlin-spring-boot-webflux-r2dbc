@@ -1,4 +1,4 @@
-package com.realworld.comment.presentation
+package com.realworld.comment.presentation.dto
 
 import com.realworld.comment.application.dto.CommentDto
 import com.realworld.exception.ErrorCode

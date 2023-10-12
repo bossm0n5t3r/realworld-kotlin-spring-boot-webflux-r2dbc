@@ -4,7 +4,7 @@ import com.realworld.article.domain.ArticleRepository
 import com.realworld.comment.application.dto.CommentDto
 import com.realworld.comment.application.dto.CommentResult
 import com.realworld.comment.domain.CommentRepository
-import com.realworld.comment.presentation.Comment
+import com.realworld.comment.presentation.dto.Comment
 import com.realworld.exception.ErrorCode
 import com.realworld.exception.InvalidRequestException
 import com.realworld.meta.application.MetaFolloweeFollowerService

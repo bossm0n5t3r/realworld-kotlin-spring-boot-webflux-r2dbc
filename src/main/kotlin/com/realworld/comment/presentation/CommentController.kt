@@ -1,6 +1,10 @@
 package com.realworld.comment.presentation
 
 import com.realworld.comment.application.CommentService
+import com.realworld.comment.presentation.dto.Comment
+import com.realworld.comment.presentation.dto.CommentWrapper
+import com.realworld.comment.presentation.dto.CommentsWrapper
+import com.realworld.comment.presentation.dto.CreateCommentRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
