@@ -256,7 +256,7 @@ class ArticleService(
             val articleDto = it.t2
 
             if (articleDto.authorId != userDto.id) {
-                sink.error(InvalidRequestException(ErrorCode.USER_NOT_MATCHED_AUTHOR))
+                sink.error(InvalidRequestException(ErrorCode.USER_NOT_MATCHED))
                 return@handle
             }
 
