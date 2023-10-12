@@ -12,6 +12,7 @@ import com.realworld.security.UserSessionProvider
 import com.realworld.user.application.UserService
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.util.Optional
 import kotlin.jvm.optionals.getOrNull
 
@@ -118,4 +119,33 @@ class CommentService(
             .collectList()
             .map { it.toSet() }
             .switchIfEmpty(Mono.just(emptySet()))
+
+    fun deleteComment(slug: String, id: Long): Mono<Unit> = Mono
+        .zip(
+            userSessionProvider.getCurrentUserSession()
+                .map { it.userDto }
+                .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
+            articleRepository.findBySlug(slug)
+                .map { it.toDto() }
+                .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND))),
+            commentRepository.findById(id)
+                .map { it.toDto() }
+                .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.COMMENT_NOT_FOUND))),
+        )
+        .publishOn(Schedulers.boundedElastic())
+        .handle { it, sink ->
+            val userDto = it.t1
+            val articleDto = it.t2
+            val commentDto = it.t3
+
+            if (commentDto.authorId != userDto.id) {
+                return@handle sink.error(InvalidRequestException(ErrorCode.USER_NOT_MATCHED))
+            }
+
+            if (commentDto.articleId != articleDto.id) {
+                return@handle sink.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_MATCHED))
+            }
+
+            commentRepository.delete(commentDto.toEntity()).subscribe()
+        }
 }

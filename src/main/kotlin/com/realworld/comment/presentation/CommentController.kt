@@ -5,6 +5,7 @@ import com.realworld.comment.presentation.dto.Comment
 import com.realworld.comment.presentation.dto.CommentWrapper
 import com.realworld.comment.presentation.dto.CommentsWrapper
 import com.realworld.comment.presentation.dto.CreateCommentRequest
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -34,4 +35,10 @@ class CommentController(
     fun getComments(
         @PathVariable slug: String,
     ): Mono<CommentsWrapper> = commentService.getComments(slug).map { CommentsWrapper(it) }
+
+    @DeleteMapping("/api/articles/{slug}/comments/{id}")
+    fun deleteComment(
+        @PathVariable slug: String,
+        @PathVariable id: Long,
+    ) = commentService.deleteComment(slug, id)
 }
