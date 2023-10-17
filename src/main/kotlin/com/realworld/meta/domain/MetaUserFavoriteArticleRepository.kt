@@ -7,4 +7,5 @@ import reactor.core.publisher.Flux
 @Repository
 interface MetaUserFavoriteArticleRepository : R2dbcRepository<MetaUserFavoriteArticle, Long> {
     fun findAllByUserId(userId: Long): Flux<MetaUserFavoriteArticle>
+    fun findAllByUserIdAndFavoriteArticleId(userId: Long, favoriteArticleId: Long): Flux<MetaUserFavoriteArticle>
 }
