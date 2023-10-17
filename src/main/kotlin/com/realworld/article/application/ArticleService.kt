@@ -1,5 +1,6 @@
 package com.realworld.article.application
 
+import com.realworld.article.application.dto.ArticleDto
 import com.realworld.article.application.dto.ArticleResult
 import com.realworld.article.application.dto.CreateArticleParameters
 import com.realworld.article.application.dto.UpdateArticleParameters
@@ -184,26 +185,33 @@ class ArticleService(
     fun getArticle(slug: String): Mono<ArticleResult> {
         return articleRepository.findBySlug(slug)
             .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND)))
-            .flatMap { articleEntity ->
-                val articleDto = articleEntity.toDto()
+            .flatMap { articleEntity -> articleEntity.toDto().toArticleResult() }
+    }
 
-                Mono.zip(
-                    userService.getUserDtoFromUserId(articleDto.authorId)
-                        .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
-                    metaArticleTagService.getTagsFromArticleId(articleDto.id),
-                ).map {
-                    val authorDto = it.t1
-                    val tagList = it.t2
+    private fun ArticleDto.toArticleResult() =
+        Mono.zip(
+            Mono.just(this),
+            userService.getUserDtoFromUserId(this.authorId),
+            userSessionProvider.getCurrentUserSession()
+                .mapNotNull { Optional.of(it.userDto) }
+                .switchIfEmpty(Mono.just(Optional.empty())),
+            metaArticleTagService.getTagsFromArticleId(this.id),
+        ).flatMap {
+            val articleDto = it.t1
+            val authorUserDto = it.t2
+            val currentUserDto = it.t3.getOrNull()
+            val tagList = it.t4
 
+            metaFolloweeFollowerService.isFollow(authorUserDto.id, currentUserDto?.id)
+                .map { isSelfFollowing ->
                     ArticleResult(
                         articleDto = articleDto,
-                        authorDto = authorDto,
+                        authorDto = authorUserDto,
                         tagList = tagList,
-                        isSelfFollowing = false,
+                        isSelfFollowing = isSelfFollowing,
                     )
                 }
-            }
-    }
+        }
 
     fun updateArticle(slug: String, updateArticleParameters: Mono<UpdateArticleParameters>): Mono<ArticleResult> {
         return Mono
