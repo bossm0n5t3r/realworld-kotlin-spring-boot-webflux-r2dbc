@@ -10,6 +10,7 @@ import com.realworld.article.domain.ArticleTemplateRepository
 import com.realworld.article.presentation.dto.Article
 import com.realworld.common.domain.OffsetBasedPageable
 import com.realworld.exception.ErrorCode
+import com.realworld.exception.InternalServerException
 import com.realworld.exception.InvalidRequestException
 import com.realworld.meta.application.MetaArticleTagService
 import com.realworld.meta.application.MetaFolloweeFollowerService
@@ -270,4 +271,30 @@ class ArticleService(
 
             articleRepository.delete(articleDto.toEntity()).subscribe()
         }
+
+    fun favoriteArticle(slug: String): Mono<ArticleResult> {
+        return Mono
+            .zip(
+                userSessionProvider.getCurrentUserSession()
+                    .mapNotNull { it.userDto }
+                    .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
+                articleRepository.findBySlug(slug)
+                    .map { it.toDto() }
+                    .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND))),
+            )
+            .flatMap {
+                val currentUserId = it.t1.id
+                val articleDto = it.t2
+                val articleId = articleDto.id
+
+                metaUserFavoriteArticleService.favoriteArticle(currentUserId, articleId).subscribeOn(Schedulers.boundedElastic())
+                    .subscribe { isSuccess ->
+                        if (isSuccess.not()) {
+                            throw InternalServerException("Failed to register favorite article.")
+                        }
+                    }
+
+                articleDto.toArticleResult()
+            }
+    }
 }

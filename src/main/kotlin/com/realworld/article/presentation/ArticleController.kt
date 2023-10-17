@@ -76,4 +76,10 @@ class ArticleController(
 
     @DeleteMapping("/api/articles/{slug}")
     fun deleteArticle(@PathVariable slug: String) = articleService.deleteArticle(slug)
+
+    @PostMapping("/api/articles/{slug}/favorite")
+    fun favoriteArticle(
+        @PathVariable slug: String,
+    ): Mono<ArticleWrapper<Article>> = articleService.favoriteArticle(slug)
+        .map { it.toArticleWithWrapper() }
 }
