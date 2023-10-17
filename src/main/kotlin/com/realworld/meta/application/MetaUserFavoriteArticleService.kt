@@ -1,5 +1,6 @@
 package com.realworld.meta.application
 
+import com.realworld.meta.domain.MetaUserFavoriteArticle
 import com.realworld.meta.domain.MetaUserFavoriteArticleRepository
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -14,5 +15,15 @@ class MetaUserFavoriteArticleService(
             .map { it.favoriteArticleId }
             .collectList()
             .map { it.toSet() }
+    }
+
+    fun favoriteArticle(currentUserId: Long?, articleId: Long?): Mono<Boolean> {
+        if (currentUserId == null || articleId == null) return Mono.just(false)
+        return metaUserFavoriteArticleRepository.save(
+            MetaUserFavoriteArticle(
+                userId = currentUserId,
+                favoriteArticleId = articleId,
+            ),
+        ).thenReturn(true)
     }
 }
