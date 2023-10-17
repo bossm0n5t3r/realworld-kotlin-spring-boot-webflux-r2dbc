@@ -282,19 +282,23 @@ class ArticleService(
                     .map { it.toDto() }
                     .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND))),
             )
-            .flatMap {
+            .publishOn(Schedulers.boundedElastic())
+            .handle { it, sink ->
                 val currentUserId = it.t1.id
                 val articleDto = it.t2
                 val articleId = articleDto.id
 
-                metaUserFavoriteArticleService.favoriteArticle(currentUserId, articleId).subscribeOn(Schedulers.boundedElastic())
-                    .subscribe { isSuccess ->
-                        if (isSuccess.not()) {
-                            throw InternalServerException("Failed to register favorite article.")
-                        }
-                    }
+                val isSuccess = metaUserFavoriteArticleService.favoriteArticle(currentUserId, articleId)
+                    .blockOptional()
+                    .getOrNull()
+                    ?: false
 
-                articleDto.toArticleResult()
+                if (isSuccess.not()) {
+                    return@handle sink.error(InternalServerException("Failed to register favorite article."))
+                }
+
+                sink.next(articleDto.toArticleResult())
             }
+            .flatMap { it }
     }
 }
