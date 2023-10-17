@@ -82,4 +82,10 @@ class ArticleController(
         @PathVariable slug: String,
     ): Mono<ArticleWrapper<Article>> = articleService.favoriteArticle(slug)
         .map { it.toArticleWithWrapper() }
+
+    @DeleteMapping("/api/articles/{slug}/favorite")
+    fun unfavoriteArticle(
+        @PathVariable slug: String,
+    ): Mono<ArticleWrapper<Article>> = articleService.unfavoriteArticle(slug)
+        .map { it.toArticleWithWrapper() }
 }

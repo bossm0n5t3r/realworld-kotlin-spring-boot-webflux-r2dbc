@@ -301,4 +301,30 @@ class ArticleService(
             }
             .flatMap { it }
     }
+
+    fun unfavoriteArticle(slug: String): Mono<ArticleResult> {
+        return Mono
+            .zip(
+                userSessionProvider.getCurrentUserSession()
+                    .mapNotNull { it.userDto }
+                    .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.USER_NOT_FOUND))),
+                articleRepository.findBySlug(slug)
+                    .map { it.toDto() }
+                    .switchIfEmpty(Mono.error(InvalidRequestException(ErrorCode.ARTICLE_NOT_FOUND))),
+            )
+            .flatMap {
+                val currentUserId = it.t1.id
+                val articleDto = it.t2
+                val articleId = articleDto.id
+
+                metaUserFavoriteArticleService.unfavoriteArticle(currentUserId, articleId).subscribeOn(Schedulers.boundedElastic())
+                    .subscribe { isSuccess ->
+                        if (isSuccess.not()) {
+                            throw InternalServerException("Failed to register favorite article.")
+                        }
+                    }
+
+                articleDto.toArticleResult()
+            }
+    }
 }
