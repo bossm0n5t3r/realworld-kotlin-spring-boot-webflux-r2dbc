@@ -26,4 +26,18 @@ class MetaUserFavoriteArticleService(
             ),
         ).thenReturn(true)
     }
+
+    fun unfavoriteArticle(currentUserId: Long?, articleId: Long?): Mono<Boolean> {
+        if (currentUserId == null || articleId == null) return Mono.just(false)
+
+        return metaUserFavoriteArticleRepository.findAllByUserIdAndFavoriteArticleId(
+            userId = currentUserId,
+            favoriteArticleId = articleId,
+        )
+            .collectList()
+            .map {
+                metaUserFavoriteArticleRepository.deleteAll(it)
+            }
+            .thenReturn(true)
+    }
 }
